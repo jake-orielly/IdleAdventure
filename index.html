@@ -25,7 +25,10 @@
                 </div>
             </div>
             <div v-if="player.isAlive">
-                {{currEnemy.name}}
+                Next: 
+                <select id="monsterSelector" v-model="nextMonster">
+                    <option v-for="monster in Object.keys(monsters)" :value="monster">{{caps(monster)}}</option>
+                </select>
                 <div class="progress-bar hp-empty">
                     <div class="progress-bar-inner hp-full"
                     :style="{width: currEnemy.hp/currEnemy.maxHP()*100 + '%'}">
@@ -41,7 +44,7 @@
                     <tr v-for="i in stats">
                         <td>
                             <div class="tooltip-container">
-                                {{i.substr(0,1).toUpperCase() + i.substr(1)}}
+                                {{caps(i)}}
                                 <span class="tooltip">{{statInfo[i]}}</span>
                             </div>
                         </td>
