@@ -35,6 +35,25 @@
                     </div>
                 </div>
             </div>
+            <div >
+                <p v-if="player.points">Ability Points: {{player.points}}</p>
+                <table>
+                    <tr v-for="i in stats">
+                        <td>
+                            <div class="tooltip-container">
+                                {{i.substr(0,1).toUpperCase() + i.substr(1)}}
+                                <span class="tooltip">{{statInfo[i]}}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {{player[i]}}
+                        </td>
+                        <td v-if="player.points" class="clickable" @click="statIncrease(i)">
+                            &uarr;
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
         <script src="app.js"></script>
     </body>

@@ -1,6 +1,14 @@
 var app = new Vue({ 
     el: '#app',
     data: {
+        stats: [],
+        statInfo: {
+            'str':'Strength: determines how hard you hit enemies.',
+            'agi':'Agility: determines your chance of hitting an enemy.',
+            'con':'Constitution: determines how much hp you have and how quickly it recovers',
+            'int':'Intellegence: determines how powerful your spells are.',
+            'wis': 'Wisdom: determines how quickly your mana regenerates.'
+        },
         gameTick: 1000,
         xpToLevel: [0,0]
     },
@@ -56,9 +64,15 @@ var app = new Vue({
             }
             return creature;
         },
+        playerInit: function() {
+            this.player = this.newCreature("Player",2,2,5,4,5,ac=12);
+            this.player.xp = 0;
+            this.player.level = 1;
+            this.player.points = 0;
+        },
         boar: function() {
             let boar = this.newCreature("Boar",1,1,2.5,ac=6);
-            boar.xpVal = 12;
+            boar.xpVal = 8;
             return boar;
         },
         attack: function(attacker,target) {
@@ -77,16 +91,27 @@ var app = new Vue({
         },
         giveXP(amount) {
             this.player.xp += amount;
-            if (this.player.xp >= this.xpFunc(this.player.level)) {
+
+            // Level up
+            if (this.player.xp >= this.xpToLevel[this.player.level+1]) {
                 this.player.level++;
-                this.player.xp -= this.xpFunc(this.player.level);
+                this.player.xp -= this.xpToLevel[this.player.level];
+                this.player.points++;
+
+                // Stat reveal milestones
+                if (this.player.level == 2)
+                    this.stats.push('str');
+                if (this.player.level == 3)
+                    this.stats.push('agi');
+                if (this.player.level == 5)
+                    this.stats.push('con');
             }
         },
         d20: function() {
             return parseInt(Math.random()*20) + 1;
         },
         xpFunc: function(level) {
-            let neededXP = this.xpToLevel[level-1] + Math.floor(level + 150 * Math.pow(2, level / 7))/4;
+            let neededXP = this.xpToLevel[level-1] + Math.floor(level + 100 * Math.pow(2, level / 7))/4;
             return parseInt(neededXP);
         },
         simulate: function(trials){
@@ -120,14 +145,19 @@ var app = new Vue({
                 results[i] = i + ": " + parseInt(results[i]*100) + "%"
             }
             console.log(results);
+        },
+
+        // UI Functions
+        statIncrease: function(stat) {
+            this.player[stat]++;
+            this.player.points--;
+            this.$forceUpdate();
         }
     },
     created: function() {
         for (let i = 2; i < 1000; i++)
             this.xpToLevel[i] = this.xpFunc(i);
-        this.player = this.newCreature("Player",2,2,5,2,2,ac=12);
-        this.player.xp = 0;
-        this.player.level = 1;
+        this.playerInit();
         this.currEnemy = this.boar();
         this.gameLoop = setInterval(function(){
             if (app.player.isAlive && app.currEnemy.isAlive) {

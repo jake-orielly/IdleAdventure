@@ -39,3 +39,27 @@ html, body {
 .xp-empty {
     background-color: lightgrey;
 }
+
+li {
+    list-style: none;
+}
+
+.tooltip-container {
+    position: relative;
+}
+
+.tooltip {
+    display: none;
+    position: absolute;
+    top: 2em;
+    background-color: white;
+    border: 5px solid black;
+    z-index: 10;
+    padding: 0.5em;
+    border-radius: 7px;
+}
+
+.tooltip-container:hover .tooltip {
+    display: inline-block;
+    width: 11em;
+}
