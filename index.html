@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="app.css">
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    </head>
+    <body>
+        <div id="app">
+            <div>
+                {{player.name + ": Level " + player.level}}
+                <div class="progress-bar hp-empty">
+                    <div class="progress-bar-inner hp-full"
+                    :style="{width: player.hp/player.maxHP()*100 + '%'}">
+                    </div>
+                    <div class="progress-bar-text">
+                        {{player.hp + " / " + player.maxHP()}}
+                    </div>
+                </div>
+                <div class="progress-bar xp-empty">
+                    <div class="progress-bar-inner xp-full"
+                    :style="{width: player.xp/xpToLevel[player.level+1]*100 + '%'}">
+                    </div>
+                    <div class="progress-bar-text">
+                            {{player.xp + "/" + xpToLevel[player.level+1]}}
+                    </div>
+                </div>
+            </div>
+            <div v-if="player.isAlive">
+                {{currEnemy.name}}
+                <div class="progress-bar hp-empty">
+                    <div class="progress-bar-inner hp-full"
+                    :style="{width: currEnemy.hp/currEnemy.maxHP()*100 + '%'}">
+                    </div>
+                    <div class="progress-bar-text">
+                        {{currEnemy.hp + " / " + currEnemy.maxHP()}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="app.js"></script>
+    </body>
+</html>
