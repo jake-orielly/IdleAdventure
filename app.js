@@ -42,7 +42,6 @@ var app = new Vue({
                 }
             else {
                 creature.die = function() {
-                    console.log("You died! How embarrassing.")
                     app.currEnemy = app.boar();
                 }
                 creature.rest = function() {
@@ -58,7 +57,7 @@ var app = new Vue({
             return creature;
         },
         boar: function() {
-            let boar = this.newCreature("Boar",1,1,4,ac=8);
+            let boar = this.newCreature("Boar",1,1,2.5,ac=6);
             boar.xpVal = 12;
             return boar;
         },
@@ -89,20 +88,52 @@ var app = new Vue({
         xpFunc: function(level) {
             let neededXP = this.xpToLevel[level-1] + Math.floor(level + 150 * Math.pow(2, level / 7))/4;
             return parseInt(neededXP);
+        },
+        simulate: function(trials){
+            let results = [];
+            let curr;
+            for (let i = 0; i < trials; i++) {
+                this.player.hp = this.player.maxHP();
+                this.player.isAlive = true;
+                this.currEnemy.hp = this.currEnemy.maxHP();
+                this.currEnemy.isAlive = true;
+                curr = 0;
+                while(this.player.isAlive)
+                    if (this.player.isAlive && this.currEnemy.isAlive) {
+                        this.playerTurn();
+                        if (this.currEnemy.isAlive)
+                                this.enemyTurn();
+                    }
+                    else if (!this.currEnemy.isAlive) {
+                        curr++;
+                        this.currEnemy.hp = this.currEnemy.maxHP();
+                        this.currEnemy.isAlive = true;
+                    }
+                if (results[curr] == undefined)
+                    for (let j = 0; j <= curr; j++)
+                        if (results[j] == undefined)
+                            results[j] = 0;
+                results[curr] += 1;
+            }
+            for (let i = 0; i < results.length; i++) {
+                results[i] /= trials;
+                results[i] = i + ": " + parseInt(results[i]*100) + "%"
+            }
+            console.log(results);
         }
     },
     created: function() {
-        for (var i = 2; i < 1000; i++)
+        for (let i = 2; i < 1000; i++)
             this.xpToLevel[i] = this.xpFunc(i);
         this.player = this.newCreature("Player",2,2,5,2,2,ac=12);
         this.player.xp = 0;
         this.player.level = 1;
         this.currEnemy = this.boar();
-        setInterval(function(){
+        this.gameLoop = setInterval(function(){
             if (app.player.isAlive && app.currEnemy.isAlive) {
                 app.playerTurn();
                 app.$forceUpdate();
-                if (app.player.isAlive && app.currEnemy.isAlive)
+                if (app.currEnemy.isAlive)
                     setTimeout(() => {
                         app.enemyTurn();  
                         app.$forceUpdate();
