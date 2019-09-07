@@ -89,3 +89,8 @@ li {
     text-decoration: underline;
     margin: 1em;
 }
+
+/* Shop UI */
+.buy-button {
+    text-decoration: underline;
+}

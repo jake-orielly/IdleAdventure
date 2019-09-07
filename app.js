@@ -56,9 +56,8 @@ var app = new Vue({
                 creature.die = function() {
                     app.giveXP(this.xpVal);
                     if (this.loot)
-                        for (let i of this.loot) {
-                            app.addItem('player',i);
-                        }
+                        for (let i of this.loot)
+                            app.addItem('player',items[i.name](),i.amount);
                 }
             else {
                 creature.die = function() {
@@ -83,19 +82,8 @@ var app = new Vue({
             this.player.points = 0;
             this.player.inventory = {};
         },
-        addItem(entity,loot) {
-            let inv = this[entity].inventory;
-            let item = this.items[loot.func]();
-            let amount;
-            if (loot.amount instanceof Array)
-                amount = parseInt(Math.random()*loot.amount[1]) + loot.amount[0];
-            else
-                amount = loot.amount;
-            if (!inv[item.name])
-                inv[item.name] = amount;
-            else
-                inv[item.name] += amount;
-        },
+        addItem: addItem,
+        removeItem: removeItem,
 
         // Enemies
         boar: function() {
@@ -106,7 +94,7 @@ var app = new Vue({
         goblin: function() {
             let goblin = this.newCreature("goblin",2,2,4,ac=8);
             goblin.xpVal = 13;
-            goblin.loot = [{func:'copper_coin',amount:[1,3]}];
+            goblin.loot = [{name:'copper_coin',amount:[1,3]}];
             return goblin;
         },
         attack: function(attacker,target) {
