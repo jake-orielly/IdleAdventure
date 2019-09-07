@@ -12,3 +12,17 @@
     width: 4em;
     height: 4em;
 }
+
+td {
+    position: relative;
+    padding: 0;
+}
+
+img {
+    position:absolute;
+}
+
+td, img {
+    width: 4em;
+    height: 4em;
+}

@@ -6,7 +6,6 @@
         <script src="utilityFunctions.js"></script>
         <script src="items.js"></script>
         <script src="spells.js"></script>
-        <script src="dungeon.vue"></script>
         <script src="shop.vue"></script>
     </head>
     <body>
@@ -120,7 +119,7 @@
                 <shop v-bind:app="this"></shop>
             </div>
             <div v-if="currLocation == 'Dungeon'" id="dungeon-container">
-                <dungeon v-bind:app="this"></dungeon>
+                <iframe src="dungeon.html"></iframe>
             </div>
         </div>
         <script src="app.js"></script>
