@@ -18,12 +18,20 @@ td {
     padding: 0;
 }
 
-img {
+img, .highlight {
     position:absolute;
     top: 0;
 }
 
-td, img {
+td, img, .highlight {
     width: 4em;
     height: 4em;
+}
+
+.action-button {
+    margin: 0em 0.5em;
+}
+
+.highlight {
+    z-index: 10;
 }

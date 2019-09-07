@@ -91,7 +91,7 @@ var app = new Vue({
             player.xp = 0;
             player.level = 1;
             player.points = 0;
-            player.spells = [];
+            player.spells = ["fire_blast"];
             player.inventory = {};
             player.equipment = {};
             player.die = function() {
@@ -161,6 +161,7 @@ var app = new Vue({
         },
         castSpell: function(caster,target,givenSpell) {
             let spell = spells[givenSpell];
+            console.log(spell,givenSpell)
             if (caster.mana > spell.cost && caster.isAlive && target.isAlive) {
                 spell.func(caster,target);
                 caster.mana -= spell.cost;
@@ -266,39 +267,41 @@ var app = new Vue({
         this.currEnemy = this.boar();
         this.nextMonster = 'boar';
         this.gameLoop = setInterval(function(){
-            if (app.player.isAlive && app.currEnemy.isAlive) {
-                if (app.gameTick % app.turnInterval == 0) {
-                    app.playerTurn();
-                    app.$forceUpdate();
-                }
-                else if (app.gameTick % app.turnInterval == parseInt(app.turnInterval/2)) {
-                    if (app.currEnemy.isStunned == 0 || app.currEnemy.isStunned == 1) {
-                        if (app.currEnemy.isStunned == 1)
-                            app.currEnemy.isStunned = 0;
-                        app.enemyTurn();  
+            if (this.currLocation == 'Wilderness') {
+                if (app.player.isAlive && app.currEnemy.isAlive) {
+                    if (app.gameTick % app.turnInterval == 0) {
+                        app.playerTurn();
                         app.$forceUpdate();
                     }
-                    else 
-                        app.currEnemy.isStunned--;
+                    else if (app.gameTick % app.turnInterval == parseInt(app.turnInterval/2)) {
+                        if (app.currEnemy.isStunned == 0 || app.currEnemy.isStunned == 1) {
+                            if (app.currEnemy.isStunned == 1)
+                                app.currEnemy.isStunned = 0;
+                            app.enemyTurn();  
+                            app.$forceUpdate();
+                        }
+                        else 
+                            app.currEnemy.isStunned--;
+                    }
                 }
-            }
-            else if (!app.currEnemy.isAlive) {
-                if (!app.monsterDeathTick)
-                    app.monsterDeathTick = app.gameTick;
-                else if (app.gameTick == app.monsterDeathTick + app.monsterSpawnTime) {
-                    app.currEnemy = app.monsters[app.nextMonster]();
-                    app.monsterDeathTick = 0;
+                else if (!app.currEnemy.isAlive) {
+                    if (!app.monsterDeathTick)
+                        app.monsterDeathTick = app.gameTick;
+                    else if (app.gameTick == app.monsterDeathTick + app.monsterSpawnTime) {
+                        app.currEnemy = app.monsters[app.nextMonster]();
+                        app.monsterDeathTick = 0;
+                        app.$forceUpdate();
+                    }
+                }
+                if (app.gameTick % app.recoveryInterval == 0) {
+                    if (!app.player.isAlive)
+                        app.player.rest();
+                    if (app.player.mana < app.player.maxMana())
+                        app.player.manaRegen();
                     app.$forceUpdate();
                 }
+                app.gameTick++;
             }
-            if (app.gameTick % app.recoveryInterval == 0) {
-                if (!app.player.isAlive)
-                    app.player.rest();
-                if (app.player.mana < app.player.maxMana())
-                    app.player.manaRegen();
-                app.$forceUpdate();
-            }
-            app.gameTick++;
         },this.gameTickInterval);
     }
 });
