@@ -1,0 +1,14 @@
+#dungeon-container td {
+    position: relative;
+    padding: 0;
+    display: inline-block;
+}
+
+#dungeon-container img {
+    position: absolute;
+}
+
+#dungeon-container img, #dungeon-container td {
+    width: 4em;
+    height: 4em;
+}

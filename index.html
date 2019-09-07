@@ -1,10 +1,12 @@
 <html>
     <head>
         <link rel="stylesheet" href="app.css">
+        <link rel="stylesheet" href="dungeon.css">
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
         <script src="utilityFunctions.js"></script>
         <script src="items.js"></script>
         <script src="spells.js"></script>
+        <script src="dungeon.vue"></script>
         <script src="shop.vue"></script>
     </head>
     <body>
@@ -116,6 +118,9 @@
             </div>
             <div v-if="currLocation == 'Shop'">
                 <shop v-bind:app="this"></shop>
+            </div>
+            <div v-if="currLocation == 'Dungeon'" id="dungeon-container">
+                <dungeon v-bind:app="this"></dungeon>
             </div>
         </div>
         <script src="app.js"></script>
