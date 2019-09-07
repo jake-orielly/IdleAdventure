@@ -50,12 +50,16 @@ var app = new Vue({
             creature.heal = function(amount){
                 creature.takeDamage(amount * -1);
             }
+            creature.dmgRoll = function() {
+                return parseInt(Math.random() * this.str) + 1;
+            }
             creature.toHit = function() {
                 let roll = app.d20();
                 if (roll == 20)
                     return "crit";
-                else
+                else {
                     return roll + this.agi;
+                }
             }
 
             if (creature.name != "player")
@@ -63,22 +67,8 @@ var app = new Vue({
                     app.giveXP(this.xpVal);
                     if (this.loot)
                         for (let i of this.loot)
-                            app.addItem('player',items[i.name](),i.amount);
+                            addItem('player',items[i.name](),i.amount);
                 }
-            else {
-                creature.die = function() {
-                    app.currEnemy = app.monsters[app.nextMonster]();
-                }
-                creature.rest = function() {
-                    let amount = Math.ceil(this.con/5);
-                    if (this.hp + amount > this.maxHP()) {
-                        this.hp = this.maxHP();
-                        this.isAlive = true;
-                    }
-                    else
-                        this.hp += amount;
-                }
-            }
             return creature;
         },
         playerInit: function() {
@@ -87,6 +77,25 @@ var app = new Vue({
             this.player.level = 1;
             this.player.points = 0;
             this.player.inventory = {};
+            this.player.equipment = {};
+            this.player.die = function() {
+                app.currEnemy = app.monsters[app.nextMonster]();
+            }
+            this.player.rest = function() {
+                let amount = Math.ceil(this.con/5);
+                if (this.hp + amount > this.maxHP()) {
+                    this.hp = this.maxHP();
+                    this.isAlive = true;
+                }
+                else
+                    this.hp += amount;
+            }
+            this.player.equip = function(item) {
+                if (this.equipment[item.slot])
+                    addItem('player',this.equipment[item.slot],1);
+                this.equipment[item.slot] = item;
+                removeItem('player',item,1);
+            }
         },
         addItem: addItem,
         removeItem: removeItem,
@@ -98,18 +107,34 @@ var app = new Vue({
             return boar;
         },
         goblin: function() {
-            let goblin = this.newCreature("goblin",2,2,4,ac=8);
+            let goblin = this.newCreature('goblin',2,2,4,ac=8);
             goblin.xpVal = 13;
             goblin.loot = [{name:'copper_coin',amount:[1,3]}];
             return goblin;
         },
-        attack: function(attacker,target) {
-            let damage = parseInt(Math.random() * attacker.str) + 1;
+        attack: function(attacker,defender) {
+            let damage = attacker.dmgRoll();
             let toHit = attacker.toHit();
-            if (toHit == "crit")
-                target.takeDamage(damage*2)
-            else if (toHit >= target.ac)
-                target.takeDamage(damage)
+            let ac = defender.ac;
+            let effects;
+            if (attacker.equipment)
+                for (let i in attacker.equipment) {
+                    effects = attacker.equipment[i].effects;
+                    if (effects.damage)
+                        damage += effects.damage;
+                    else if (toHit != 'crit' && effects.toHit)
+                        toHit += effects.toHit;
+                }
+            if (defender.equipment)
+                for (let i in defender.equipment) {
+                    effects = defender.equipment[i].effects;
+                    if (effects.ac)
+                        ac += effects.ac;
+                }
+            if (toHit == 'crit')
+                defender.takeDamage(damage*2)
+            else if (toHit >= ac)
+                defender.takeDamage(damage)
         },
         playerTurn: function() {
                 this.attack(this.player, this.currEnemy);
