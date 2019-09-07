@@ -34,10 +34,28 @@ li {
 
 .progress-bar-inner {
     height: 100%;
+    transition: 0.5s;
+    transition-timing-function: ease-in-out;
 }
 
 .progress-bar-text {
+    position: relative;
     margin-top: -1.25em;
+}
+
+.floating-num {
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: 0.5s;
+}
+
+.floating-num-end {
+    transform: translate(1.5em, -1.5em);
+}
+
+.hidden {
+    opacity: 0;
 }
 
 .hp-full {
@@ -46,6 +64,14 @@ li {
 
 .hp-empty {
     background-color: red;
+}
+
+.hp-heal {
+    color: green;
+}
+
+.hp-damage {
+    color: red;
 }
 
 .xp-full {
@@ -58,6 +84,10 @@ li {
 
 .mana-full {
     background-color: #9c27b0;
+}
+
+.mana-color {
+    color: #9c27b0;
 }
 
 .mana-empty {

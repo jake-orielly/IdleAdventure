@@ -19,7 +19,6 @@ function addItem(entity,item,amount) {
 
 function removeItem(entity,item,amount) {
     addItem(entity,item,amount*-1);
-    app.$emit('invChange');
 }
 
 function canAfford(inv,item,amount) {
@@ -31,6 +30,8 @@ function canAfford(inv,item,amount) {
 
 // Basic Utilities 
 function prettyPrint(given) {
+    if (!given)
+        return;
     if (isNaN(given)) {
         let arr = given.split('_')
         for (let i = 0; i < arr.length; i++)
@@ -38,6 +39,9 @@ function prettyPrint(given) {
         return arr.join(' ');
     }
     else {
-        return '' + (parseInt(given * 10)/10);
+        if (given < 0.1)
+            return '' + (parseInt(given * 100)/100);
+        else 
+            return '' + (parseInt(given * 10)/10);
     }
 }

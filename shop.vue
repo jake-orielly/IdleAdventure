@@ -24,7 +24,9 @@ Vue.component('shop', {
   },
   mounted: function() {
     app.$on('invChange', function() {
-      this.$children[0].$forceUpdate();
+      // AKA only update the shop if it's open
+      if (this.$children[0])
+        this.$children[0].$forceUpdate();
     });
   },
   template: `<div>

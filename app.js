@@ -24,10 +24,11 @@ var app = new Vue({
         xpToLevel: [0,0],
     },
     methods: {
-        newCreature: function(name,str,agi,con,int=0,wis=0,ac=0) {
+        newCreature: function(name,str,agi,con,int,wis,ac) {
             let creature = {};
             creature.name = name;
             creature.ac = ac;
+            console.log(ac)
             creature.str = str;
             creature.agi = agi;
             creature.con = con;
@@ -60,6 +61,7 @@ var app = new Vue({
                 }
                 else
                     this.hp -= amount;
+                this.currHit = -1 * amount;
             }
             creature.heal = function(amount){
                 creature.takeDamage(amount * -1);
@@ -86,7 +88,7 @@ var app = new Vue({
             return creature;
         },
         playerInit: function() {
-            let player = this.newCreature("player",2,2,5,4,5,ac=12);
+            let player = this.newCreature("player",2,2,5,4,5,12);
             player.xp = 0;
             player.level = 1;
             player.points = 0;
@@ -98,12 +100,7 @@ var app = new Vue({
             }
             player.rest = function() {
                 let amount = this.con/30;
-                if (this.hp + amount > this.maxHP()) {
-                    this.hp = this.maxHP();
-                    this.isAlive = true;
-                }
-                else
-                    this.hp += amount;
+                player.takeDamage(-1 * amount);
             }
             player.manaRegen = function() {
                 let amount = this.wis/75;
@@ -126,12 +123,12 @@ var app = new Vue({
 
         // Enemies
         boar: function() {
-            let boar = this.newCreature("boar",1,1,2.5,ac=6);
+            let boar = this.newCreature("boar",1,1,2.5,0,0,6);
             boar.xpVal = 8;
             return boar;
         },
         goblin: function() {
-            let goblin = this.newCreature('goblin',2,2,4,ac=8);
+            let goblin = this.newCreature('goblin',2,2,4,0,0,8);
             goblin.xpVal = 13;
             goblin.loot = [{name:'copper_coin',amount:[1,3]}];
             return goblin;
@@ -159,6 +156,9 @@ var app = new Vue({
                 defender.takeDamage(damage*2);
             else if (toHit >= ac)
                 defender.takeDamage(damage);
+            else {
+                defender.currHitAddon = "Miss";
+            }
         },
         castSpell: function(caster,target,givenSpell) {
             let spell = spells[givenSpell];
@@ -169,9 +169,13 @@ var app = new Vue({
         },
         playerTurn: function() {
             this.attack(this.player, this.currEnemy);
+            this.player.currHit = undefined;
+            this.player.currHitAddon = undefined;
         },
         enemyTurn: function() {
             this.attack(this.currEnemy, this.player);
+            this.currEnemy.currHit = undefined;
+            this.currEnemy.currHitAddon = undefined;
         },
         giveXP(amount) {
             this.player.xp += amount;
@@ -291,7 +295,8 @@ var app = new Vue({
             if (app.gameTick % app.recoveryInterval == 0) {
                 if (!app.player.isAlive)
                     app.player.rest();
-                app.player.manaRegen();
+                if (app.player.mana < app.player.maxMana())
+                    app.player.manaRegen();
                 app.$forceUpdate();
             }
             app.gameTick++;

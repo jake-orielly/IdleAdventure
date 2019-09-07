@@ -26,6 +26,14 @@
                             </div>
                             <div class="progress-bar-text">
                                 {{prettyPrint(player.hp) + " / " + player.maxHP()}}
+                                <div class="floating-num" 
+                                :class="[ player.currHit != undefined ? 'floating-num-end' : 'hidden', player.currHit < 0 ? 'hp-damage' : 'hp-heal']">
+                                    {{prettyPrint(player.currHit)}}
+                                </div>
+                                <div class="floating-num" 
+                                :class="[ player.currHitAddon != undefined ? 'floating-num-end' : 'hidden']">
+                                    {{player.currHitAddon}}
+                                </div>
                             </div>
                         </div>
                         <div v-if="playerStats.indexOf('int') != -1" class="progress-bar mana-empty">
@@ -33,7 +41,7 @@
                             :style="{width: player.mana/player.maxMana()*100 + '%'}">
                             </div>
                             <div class="progress-bar-text">
-                                    {{prettyPrint(player.mana) + "/" + player.maxMana()}}
+                                {{prettyPrint(player.mana) + "/" + player.maxMana()}}
                             </div>
                         </div>
                         <div class="progress-bar xp-empty">
@@ -71,6 +79,14 @@
                             </div>
                             <div class="progress-bar-text">
                                 {{currEnemy.hp + " / " + currEnemy.maxHP()}}
+                                <div class="floating-num" 
+                                :class="[ currEnemy.currHit != undefined ? 'floating-num-end' : 'hidden', currEnemy.currHit < 0 ? 'hp-damage' : 'hp-heal']">
+                                    {{prettyPrint(currEnemy.currHit)}}
+                                </div>
+                                <div class="floating-num" 
+                                :class="[ currEnemy.currHitAddon != undefined ? 'floating-num-end' : 'hidden']">
+                                    {{currEnemy.currHitAddon}}
+                                </div>
                             </div>
                             <div v-if="currEnemy.isStunned && currEnemy.isAlive">
                                 Stunned
