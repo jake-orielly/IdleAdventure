@@ -10,11 +10,21 @@ html, body {
     padding: 5px;
 }
 
+ul {
+    padding: 0;
+    margin: 0;
+}
+
+li {
+    list-style: none;
+}
+
 .clickable {
     cursor:pointer;
     user-select: none;
 }
 
+/* Progress Bars */
 .progress-bar {
     height: 1.5em;
     width: 8em;
@@ -46,13 +56,12 @@ html, body {
     background-color: lightgrey;
 }
 
-ul {
-    padding: 0;
-    margin: 0;
+.mana-full {
+    background-color: #9c27b0;
 }
 
-li {
-    list-style: none;
+.mana-empty {
+    background-color: #9c27b04f;
 }
 
 .enemy-list {
@@ -88,6 +97,11 @@ li {
     display: inline;
     text-decoration: underline;
     margin: 1em;
+}
+
+/* Spells */
+.spell-btn {
+    margin: 0em 0.5em;
 }
 
 /* Shop UI */

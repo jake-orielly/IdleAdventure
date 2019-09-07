@@ -35,7 +35,7 @@ var items = {
             user.equip(this);
             app.$forceUpdate();
         },
-        slot: 'weapon',effects:{
+        slot: 'chest',effects:{
             ac: 4,
         }}
     }

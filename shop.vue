@@ -5,7 +5,7 @@ Vue.component('shop', {
   data: function () {
     return {
         buyMultiplier: 1.5,
-        inventory: {bread:1},
+        inventory: {bread:1,copper_dagger:1,copper_breastplate:1},
         items: items,
     }
   },
@@ -23,12 +23,13 @@ Vue.component('shop', {
         prettyPrint: prettyPrint,
   },
   template: `<div>
-    <ul>
-        <li v-for="item in Object.keys(inventory)">
-            {{prettyPrint(items[item]().name) + ' ' + parseInt(items[item]().value * buyMultiplier)}}
-            <span @click="buy(item)" class="buy-button clickable">Buy</span>
-        </li>
-    </ul>
+    <table>
+        <tr v-for="item in Object.keys(inventory)">
+            <td>{{prettyPrint(items[item]().name)}}</td>
+            <td>{{parseInt(items[item]().value * buyMultiplier)}}</td>
+            <td><span @click="buy(item)" class="buy-button clickable">Buy</span></td>
+        </tr>
+    </table>
     <ul>
         <li v-for="item in Object.keys(app.player.inventory)">
             {{prettyPrint((app.player.inventory[item] > 1 ? items[item]().plural : items[item]().name)) + 
