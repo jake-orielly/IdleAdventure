@@ -18,9 +18,17 @@ let inRangeColor = '#ff00006b';
 
 function renderTile(x,y,addon,highlightColor) {
     let tileHtml = '';
+    let width;
     tileHtml += getTile();
-    if (addon)
-        tileHtml += '<img src="' + addon + '">';
+    if (addon) {
+        tileHtml += '<img src="' + addon.img + '">';
+        if (addon.entity.name != 'player') {
+            width = addon.entity.hp/addon.entity.maxHP()*100;
+            tileHtml += `<div class="progress-bar-horiz hp-empty">
+            <div class="progress-bar-inner hp-full" style="width:${width}%"></div>
+            </div>`;
+        }
+    }
     if (highlightColor)
         tileHtml += '<div class="highlight" style="background-color:' + highlightColor + '"></div>'
     document.getElementById(y + ':' + x).innerHTML = tileHtml;
@@ -38,7 +46,7 @@ function movePlayer (x,y) {
         renderTile(playerToken.x,playerToken.y);
         playerToken.x += x;
         playerToken.y += y;
-        renderTile(playerToken.x,playerToken.y,playerToken.img);
+        renderTile(playerToken.x,playerToken.y,playerToken);
         document.getElementById("player-steps").innerHTML = playerSteps;
         renderEnemies();
         highlights = {};
@@ -52,7 +60,7 @@ function enemyTurn() {
 
 function renderEnemies() {
     for (let i of enemies)
-        renderTile(i.x,i.y,i.img);
+        renderTile(i.x,i.y,i);
 }
 function collision(x,y,token) {
     let curr;
@@ -94,7 +102,7 @@ function chooseAction(action) {
             action = app.spells[action];
     for (let i of enemies)
             if (inRange(playerToken,i,action.range)) {
-                renderTile(i.x,i.y,i.img,inRangeColor);
+                renderTile(i.x,i.y,i,inRangeColor);
                 highlights[i.x + ':' + i.y] = true;
             }
 }
@@ -113,14 +121,17 @@ function takeAction(y,x) {
         target = enemies.filter(e => e.x == x && e.y == y)[0].entity;
         if (selectedAction == 'attack')
             app.attack(playerToken.entity, target);
-        else
+        else {
             app.castSpell(playerToken.entity,target,selectedAction)
+            document.getElementById('mana-inner').style.height = app.player.mana/app.player.maxMana()*100 + "%";
+        }
     }
     killed = enemies.filter(e => !e.entity.isAlive);
     for (let i of killed)
         renderTile(i.x,i.y);
     enemies = enemies.filter(e => e.entity.isAlive);
     renderEnemies();
+    document.getElementById('xp-inner').style.height = app.player.xp/app.xpToLevel[app.player.level+1]*100 + '%';
     highlights = {};
 }
 
@@ -148,9 +159,13 @@ function startDungeon(){
         buttons += '<button class="action-button" onclick="chooseAction(\'' + i + '\')">' + prettyPrint(i) + '</button>'
     document.getElementById('player-action-container').innerHTML = buttons;
 
-    renderTile(playerToken.x,playerToken.y,playerToken.img);
+    renderTile(playerToken.x,playerToken.y,playerToken);
     for (let i = 0; i < enemies.length; i++)
-        renderTile(enemies[i].x,enemies[i].y,enemies[i].img);
+        renderTile(enemies[i].x,enemies[i].y,enemies[i]);
+        
+    document.getElementById('hp-inner').style.height = app.player.hp/app.player.maxHP()*100 + "%";
+    document.getElementById('mana-inner').style.height = app.player.mana/app.player.maxMana()*100 + "%";
+    document.getElementById('xp-inner').style.height = app.player.xp/app.xpToLevel[app.player.level+1]*100 + '%';
 
     document.addEventListener('keydown', keyPress);
     app.$on('invChange', function() {

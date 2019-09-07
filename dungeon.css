@@ -1,16 +1,7 @@
-#dungeon-container td {
-    position: relative;
+body {
     padding: 0;
-    display: inline-block;
-}
-
-#dungeon-container img {
-    position: absolute;
-}
-
-#dungeon-container img, #dungeon-container td {
-    width: 4em;
-    height: 4em;
+    margin: 0;
+    overflow: hidden;
 }
 
 td {
@@ -34,4 +25,74 @@ td, img, .highlight {
 
 .highlight {
     z-index: 10;
+}
+
+#player-hud {
+    position: absolute;
+    top: 0;
+    height: 6em;
+    width: 10em;
+}
+
+/* Progress Bars */
+.progress-bar-horiz {
+    position:absolute;
+    height: .5em;
+    width: 100%;
+    bottom:0;
+    z-index:11;
+}
+
+.progress-bar-vert {
+    position: relative;
+    height: 100%;
+    width: 1em;
+    z-index:11;
+    float: left;
+    margin-right: 1em;
+}
+
+.progress-bar-inner {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    transition: 0.5s;
+    transition-timing-function: ease-in-out;
+}
+
+.hp-full {
+    background-color: green;
+}
+
+.hp-empty {
+    background-color: red;
+}
+
+.hp-heal {
+    color: green;
+}
+
+.hp-damage {
+    color: red;
+}
+
+.xp-full {
+    background-color: lightseagreen;
+}
+
+.xp-empty {
+    background-color: lightgrey;
+}
+
+.mana-full {
+    background-color: #9c27b0;
+}
+
+.mana-color {
+    color: #9c27b0;
+}
+
+.mana-empty {
+    background-color: #9c27b04f;
 }
