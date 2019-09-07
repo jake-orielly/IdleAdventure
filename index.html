@@ -2,60 +2,89 @@
     <head>
         <link rel="stylesheet" href="app.css">
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script src="items.js"></script>
+        <script src="utilityFunctions.js"></script>
+        <script src="shop.vue"></script>
     </head>
     <body>
         <div id="app">
-            <div>
-                {{player.name + ": Level " + player.level}}
-                <div class="progress-bar hp-empty">
-                    <div class="progress-bar-inner hp-full"
-                    :style="{width: player.hp/player.maxHP()*100 + '%'}">
-                    </div>
-                    <div class="progress-bar-text">
-                        {{player.hp + " / " + player.maxHP()}}
-                    </div>
-                </div>
-                <div class="progress-bar xp-empty">
-                    <div class="progress-bar-inner xp-full"
-                    :style="{width: player.xp/xpToLevel[player.level+1]*100 + '%'}">
-                    </div>
-                    <div class="progress-bar-text">
-                            {{player.xp + "/" + xpToLevel[player.level+1]}}
-                    </div>
-                </div>
+            <div id="locations-container">
+                <ul id="locations-menu">
+                    <li v-for="loc in locations" @click="currLocation = loc" class="locations-menu-item clickable">
+                        {{loc}}
+                    </li>
+                </ul>
             </div>
-            <div v-if="player.isAlive">
-                Next: 
-                <select id="monsterSelector" v-model="nextMonster">
-                    <option v-for="monster in Object.keys(monsters)" :value="monster">{{caps(monster)}}</option>
-                </select>
-                <div class="progress-bar hp-empty">
-                    <div class="progress-bar-inner hp-full"
-                    :style="{width: currEnemy.hp/currEnemy.maxHP()*100 + '%'}">
-                    </div>
-                    <div class="progress-bar-text">
-                        {{currEnemy.hp + " / " + currEnemy.maxHP()}}
-                    </div>
-                </div>
-            </div>
-            <div >
-                <p v-if="player.points">Ability Points: {{player.points}}</p>
-                <table>
-                    <tr v-for="i in stats">
-                        <td>
-                            <div class="tooltip-container">
-                                {{caps(i)}}
-                                <span class="tooltip">{{statInfo[i]}}</span>
+            <div style="position:relative">
+                <div v-if="currLocation == 'Wilderness'">
+                    <div>
+                        {{player.name + ": Level " + player.level}}
+                        <div class="progress-bar hp-empty">
+                            <div class="progress-bar-inner hp-full"
+                            :style="{width: player.hp/player.maxHP()*100 + '%'}">
                             </div>
-                        </td>
-                        <td>
-                            {{player[i]}}
-                        </td>
-                        <td v-if="player.points" class="clickable" @click="statIncrease(i)">
-                            &uarr;
-                        </td>
-                    </tr>
-                </table>
+                            <div class="progress-bar-text">
+                                {{player.hp + " / " + player.maxHP()}}
+                            </div>
+                        </div>
+                        <div class="progress-bar xp-empty">
+                            <div class="progress-bar-inner xp-full"
+                            :style="{width: player.xp/xpToLevel[player.level+1]*100 + '%'}">
+                            </div>
+                            <div class="progress-bar-text">
+                                    {{player.xp + "/" + xpToLevel[player.level+1]}}
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button @click="castSpell('iceBlast')">Ice Blast</button>
+                    </div>
+                    <div>
+                        <ul>
+                            <li v-for="item in Object.keys(player.inventory)">
+                                {{prettyPrint((player.inventory[item] > 1 ? items[item]().plural : items[item]().name)) + 
+                                ': ' + player.inventory[item]}}
+                            </li>
+                        </ul>
+                    </div>
+                    <div v-if="player.isAlive">
+                        <span v-if="Object.keys(monsters).length > 1">Next:</span> 
+                        <select v-if="Object.keys(monsters).length > 1" id="monsterSelector" v-model="nextMonster">
+                            <option v-for="monster in Object.keys(monsters)" :value="monster">{{prettyPrint(monster)}}</option>
+                        </select>
+                        <span v-if="Object.keys(monsters).length == 1">{{prettyPrint(currEnemy.name)}}</span>
+                        <div class="progress-bar hp-empty">
+                            <div class="progress-bar-inner hp-full"
+                            :style="{width: currEnemy.hp/currEnemy.maxHP()*100 + '%'}">
+                            </div>
+                            <div class="progress-bar-text">
+                                {{currEnemy.hp + " / " + currEnemy.maxHP()}}
+                            </div>
+                        </div>
+                    </div>
+                    <div >
+                        <p v-if="player.points">Ability Points: {{player.points}}</p>
+                        <table>
+                            <tr v-for="i in stats">
+                                <td>
+                                    <div class="tooltip-container">
+                                        {{prettyPrint(i)}}
+                                        <span class="tooltip">{{statInfo[i]}}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    {{player[i]}}
+                                </td>
+                                <td v-if="player.points" class="clickable" @click="statIncrease(i)">
+                                    &uarr;
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div v-if="currLocation == 'Shop'">
+                <shop></shop>
             </div>
         </div>
         <script src="app.js"></script>

@@ -3,6 +3,8 @@ var app = new Vue({
     data: {
         stats: [],
         monsters:{},
+        locations:['Wilderness','Shop'],
+        currLocation: 'Wilderness',
         nextMonster: '',
         statInfo: {
             'str':'Strength: determines how hard you hit enemies.',
@@ -11,6 +13,7 @@ var app = new Vue({
             'int':'Intellegence: determines how powerful your spells are.',
             'wis': 'Wisdom: determines how quickly your mana regenerates.'
         },
+        items: items,
         gameTick: 1000,
         xpToLevel: [0,0]
     },
@@ -38,6 +41,9 @@ var app = new Vue({
                 else
                     this.hp -= amount;
             }
+            creature.heal = function(amount){
+                creature.takeDamage(amount * -1);
+            }
             creature.toHit = function() {
                 let roll = app.d20();
                 if (roll == 20)
@@ -49,10 +55,14 @@ var app = new Vue({
             if (creature.name != "Player")
                 creature.die = function() {
                     app.giveXP(this.xpVal);
+                    if (this.loot)
+                        for (let i of this.loot) {
+                            app.addItem('player',i);
+                        }
                 }
             else {
                 creature.die = function() {
-                    app.currEnemy = app.boar();
+                    app.currEnemy = app.monsters[app.nextMonster]();
                 }
                 creature.rest = function() {
                     let amount = Math.ceil(this.con/5);
@@ -71,6 +81,20 @@ var app = new Vue({
             this.player.xp = 0;
             this.player.level = 1;
             this.player.points = 0;
+            this.player.inventory = {};
+        },
+        addItem(entity,loot) {
+            let inv = this[entity].inventory;
+            let item = this.items[loot.func]();
+            let amount;
+            if (loot.amount instanceof Array)
+                amount = parseInt(Math.random()*loot.amount[1]) + loot.amount[0];
+            else
+                amount = loot.amount;
+            if (!inv[item.name])
+                inv[item.name] = amount;
+            else
+                inv[item.name] += amount;
         },
 
         // Enemies
@@ -82,9 +106,9 @@ var app = new Vue({
         goblin: function() {
             let goblin = this.newCreature("goblin",2,2,4,ac=8);
             goblin.xpVal = 13;
+            goblin.loot = [{func:'copper_coin',amount:[1,3]}];
             return goblin;
         },
-
         attack: function(attacker,target) {
             let damage = parseInt(Math.random() * attacker.str) + 1;
             let toHit = attacker.toHit();
@@ -167,10 +191,7 @@ var app = new Vue({
             this.player.points--;
             this.$forceUpdate();
         },
-        caps: function(string) {
-            return string.substr(0,1).toUpperCase() + string.substr(1)
-        },
-
+        prettyPrint: prettyPrint,
         ping: function(string="hello") {
             console.log(string);
         }

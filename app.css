@@ -79,3 +79,13 @@ li {
     display: inline-block;
     width: 11em;
 }
+
+/* Locations Nav Bar */
+#locations-container {
+    margin: 0.5em 0em;
+}
+.locations-menu-item {
+    display: inline;
+    text-decoration: underline;
+    margin: 1em;
+}
