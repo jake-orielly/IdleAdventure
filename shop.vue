@@ -22,6 +22,11 @@ Vue.component('shop', {
         canAfford: canAfford,
         prettyPrint: prettyPrint,
   },
+  mounted: function() {
+    app.$on('invChange', function() {
+      this.$children[0].$forceUpdate();
+    });
+  },
   template: `<div>
     <table>
         <tr v-for="item in Object.keys(inventory)">

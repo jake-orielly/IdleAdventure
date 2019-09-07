@@ -14,10 +14,12 @@ function addItem(entity,item,amount) {
         inv[item.name] = amount;
     else
         inv[item.name] += amount;
+    app.$emit('invChange');
 }
 
 function removeItem(entity,item,amount) {
     addItem(entity,item,amount*-1);
+    app.$emit('invChange');
 }
 
 function canAfford(inv,item,amount) {
