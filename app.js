@@ -302,3 +302,5 @@ var app = new Vue({
         },this.gameTickInterval);
     }
 });
+
+window.app = app;

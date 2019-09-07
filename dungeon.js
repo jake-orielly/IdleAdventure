@@ -18,17 +18,17 @@ function eraseToken (token) {
 function movePlayer (x,y) {
     let newX = playerToken.x + x;
     let newY = playerToken.y + y;
-    if (playerTurn && newX > 0 && newX <= rows && newY > 0 && newY <= cols && !collision(newX,newY,playerToken)) {
-    playerSteps--;
-    if (playerSteps == 0) {
-        playerTurn = false;
-        enemyTurn();
-    }
-    eraseToken(playerToken);
-    playerToken.x += x;
-    playerToken.y += y;
-    renderToken(playerToken);
-    document.getElementById("player-steps").innerHTML = playerSteps;
+    if (playerTurn && newX >= 0 && newX < rows && newY >= 0 && newY < cols && !collision(newX,newY,playerToken)) {
+        playerSteps--;
+        if (playerSteps == 0) {
+            playerTurn = false;
+            enemyTurn();
+        }
+        eraseToken(playerToken);
+        playerToken.x += x;
+        playerToken.y += y;
+        renderToken(playerToken);
+        document.getElementById("player-steps").innerHTML = playerSteps;
     }
 }
 function enemyTurn() {
@@ -39,27 +39,27 @@ function enemyTurn() {
 function collision(x,y,token) {
     let curr;
     if (token != playerToken) {
-    curr = playerToken;
-    if (curr.x == x && curr.y == y)
-        return true;
+        curr = playerToken;
+        if (curr.x == x && curr.y == y)
+            return true;
     }
     for (let i = 0; i < enemies.length; i++)
     if (enemies[i] != token) {
         curr = enemies[i];
         if (curr.x == x && curr.y == y)
-        return true;
+            return true;
     }
     return false;
 }
 function keyPress() {
     if (event.key == 'w')
-    movePlayer(0,-1);
+        movePlayer(0,-1);
     else if (event.key == 's')
-    movePlayer(0,1);
+        movePlayer(0,1);
     else if (event.key == 'a')
-    movePlayer(-1,0);
+        movePlayer(-1,0);
     else if (event.key == 'd')
-    movePlayer(1,0);
+        movePlayer(1,0);
 }
 function getTile() {
     let floor = '<img src=images/floor.png>';
@@ -72,6 +72,7 @@ function startDungeon(){
     /*app.$on('invChange', function() {
         console.log('Inv change');
     });*/
+    console.log(window.parent.app)
     for (var i = 0; i < cols; i++) {
         row = '<tr>';
         for (var j = 0; j < rows; j++) {

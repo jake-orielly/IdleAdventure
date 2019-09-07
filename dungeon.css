@@ -20,6 +20,7 @@ td {
 
 img {
     position:absolute;
+    top: 0;
 }
 
 td, img {
