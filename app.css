@@ -94,3 +94,8 @@ li {
 .buy-button {
     text-decoration: underline;
 }
+
+/* Inventory UI */
+.inventory-item-use {
+    text-decoration: underline;
+}

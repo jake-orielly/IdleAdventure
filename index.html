@@ -18,7 +18,7 @@
             <div style="position:relative">
                 <div v-if="currLocation == 'Wilderness'">
                     <div>
-                        {{player.name + ": Level " + player.level}}
+                        {{prettyPrint(player.name) + ": Level " + player.level}}
                         <div class="progress-bar hp-empty">
                             <div class="progress-bar-inner hp-full"
                             :style="{width: player.hp/player.maxHP()*100 + '%'}">
@@ -41,9 +41,12 @@
                     </div>
                     <div>
                         <ul>
-                            <li v-for="item in Object.keys(player.inventory)">
+                            <li v-for="item in Object.keys(player.inventory).filter(key => player.inventory[key] > 0)">
                                 {{prettyPrint((player.inventory[item] > 1 ? items[item]().plural : items[item]().name)) + 
                                 ': ' + player.inventory[item]}}
+                                <span v-if="items[item]().useName" @click="items[item]().use(player)" class="inventory-item-use clickable">
+                                    {{prettyPrint(items[item]().useName)}}
+                                </span>
                             </li>
                         </ul>
                     </div>
@@ -84,7 +87,7 @@
                 </div>
             </div>
             <div v-if="currLocation == 'Shop'">
-                <shop v-bind:player="player"></shop>
+                <shop v-bind:app="this"></shop>
             </div>
         </div>
         <script src="app.js"></script>

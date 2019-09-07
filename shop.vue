@@ -1,6 +1,6 @@
 Vue.component('shop', {
   props: {
-    player: Object,
+    app: Object,
   },
   data: function () {
     return {
@@ -12,7 +12,7 @@ Vue.component('shop', {
   methods: {
         buy: function(item) {
           let amount = parseInt(items[item]().value * this.buyMultiplier);
-          if (canAfford(this.player.inventory,'copper_coin',amount)) {
+          if (canAfford(this.app.player.inventory,'copper_coin',amount)) {
             app.removeItem('player',items['copper_coin'](),amount);
             app.addItem('player',items[item](),1);
           }
@@ -30,9 +30,9 @@ Vue.component('shop', {
         </li>
     </ul>
     <ul>
-        <li v-for="item in Object.keys(player.inventory)">
-            {{prettyPrint((player.inventory[item] > 1 ? items[item]().plural : items[item]().name)) + 
-            ': ' + player.inventory[item]}}
+        <li v-for="item in Object.keys(app.player.inventory)">
+            {{prettyPrint((app.player.inventory[item] > 1 ? items[item]().plural : items[item]().name)) + 
+            ': ' + app.player.inventory[item]}}
         </li>
     </ul>
   </div>`

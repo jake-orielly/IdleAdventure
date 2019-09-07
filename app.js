@@ -33,10 +33,16 @@ var app = new Vue({
             }
             creature.hp = creature.maxHP();
             creature.takeDamage = function(amount) {
+                // Catch overkill
                 if (amount >= this.hp) {
                     this.hp = 0;
                     this.isAlive = false;
                     this.die();
+                }
+                // Catch overheal
+                else if (amount < 0 && this.hp - amount >= creature.maxHP()) {
+                    this.hp = this.maxHP();
+                    this.isAlive = true;
                 }
                 else
                     this.hp -= amount;
@@ -52,7 +58,7 @@ var app = new Vue({
                     return roll + this.agi;
             }
 
-            if (creature.name != "Player")
+            if (creature.name != "player")
                 creature.die = function() {
                     app.giveXP(this.xpVal);
                     if (this.loot)
@@ -76,7 +82,7 @@ var app = new Vue({
             return creature;
         },
         playerInit: function() {
-            this.player = this.newCreature("Player",2,2,5,4,5,ac=12);
+            this.player = this.newCreature("player",2,2,5,4,5,ac=12);
             this.player.xp = 0;
             this.player.level = 1;
             this.player.points = 0;
