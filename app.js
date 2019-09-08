@@ -4,7 +4,7 @@ var app = new Vue({
         playerStats: [],
         monsters:{},
         locations:['Wilderness','Dungeon'],
-        currLocation: 'Dungeon',
+        currLocation: 'Wilderness',
         statInfo: {
             'str':'Strength: determines how hard you hit enemies.',
             'agi':'Agility: determines your chance of hitting an enemy.',
@@ -205,8 +205,10 @@ var app = new Vue({
         },
         changeLocation: function(loc) {
             this.currLocation = loc;
-            if (loc == 'Dungeon')
+            if (loc == 'Dungeon') {
+                app.$emit('startDungeon');
                 document.getElementById("dungeonIframe").focus();
+            }
 
         },
         prettyPrint: prettyPrint,

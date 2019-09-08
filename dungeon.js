@@ -5,14 +5,11 @@ let cols = 11;
 
 let cardinalDirs = [[-1,0],[0,1],[1,0],[0,-1]];
 
-let playerToken = {x:24, y:58, img: 'images/player.png',entity:app.player};
+let playerToken;
 let playerTurn = true;
 let playerSteps = 2;
 let xVisMod,yVisMod, sightRange;
-let enemies = [
-  {x:7,y:50,img:'images/goblin.png',entity:app.allMonsters['goblin']()},
-  {x:7,y:48,img:'images/goblin.png',entity:app.allMonsters['goblin']()}
-];
+let enemies;
 let currEnemies = [];
 
 let floorTileImages = ['images/empty.png','images/floor.png','images/wall.png']
@@ -23,6 +20,7 @@ let altarImage = 'images/altar.png';
 let statueImage = 'images/statue.png';
 let fountainImage = 'images/fountain.png';
 let columnImage = 'images/column.png';
+let doorImage = 'images/door.png';
 
 let hideFloating = {};
 
@@ -40,6 +38,7 @@ let scenery = [
     {x:39,y:23,img:statueImage,class:'flip'},
     {x:33,y:18,img:statueImage},
     {x:39,y:18,img:statueImage,class:'flip'},
+    {x:24,y:63,img:doorImage},
 ];
 
 let highlights = {};
@@ -235,6 +234,8 @@ function keyPress() {
                     i.img = chestOpenImage;
                     renderTile(i.x,i.y,i);
                 }
+            else if (i.img == doorImage && inRange(playerToken,i,1))
+                app.currLocation = 'Wilderness';
     }
 }
 function getTile(x,y) {
@@ -422,9 +423,11 @@ function takeAction(y,x) {
 }
 
 function startDungeon(){
-    let table,row,cell,buttons;
+    let buttons;
     let playerActions = [];
-    
+
+    playerToken = {x:24, y:58, img: 'images/player.png',entity:app.player};
+
     sightRange = parseInt(cols/2);
     xVisMod = playerToken.x - sightRange;
     yVisMod = playerToken.y - sightRange;
@@ -438,6 +441,12 @@ function startDungeon(){
     for (let i of playerActions)
         buttons += '<button class="action-button" onclick="chooseAction(\'' + i + '\')">' + prettyPrint(i) + '</button>'
     document.getElementById('player-action-container').innerHTML = buttons;
+
+
+    enemies = [
+        {x:7,y:50,img:'images/goblin.png',entity:app.allMonsters['goblin']()},
+        {x:7,y:48,img:'images/goblin.png',entity:app.allMonsters['goblin']()}
+    ];
 
     renderTile(playerToken.x,playerToken.y,playerToken);
     renderEnemies();
@@ -456,6 +465,9 @@ function startDungeon(){
     });
     app.$on('damage', function(damage,uid) {
         floatingNumberTrigger(damage,uid);
+    });
+    app.$on('startDungeon', function() {
+        startDungeon();
     });
 }
 startDungeon();
