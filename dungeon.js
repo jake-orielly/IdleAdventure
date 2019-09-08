@@ -32,8 +32,8 @@ let scenery = [
     {x:25,y:49,img:columnImage},
     {x:23,y:49,img:columnImage},
     {x:24,y:38,img:fountainImage},
-    {x:36,y:36,img:statueImage,class:'flip'},
-    {x:36,y:38,img:statueImage,class:'flip'},
+    {x:35,y:36,img:statueImage,class:'flip'},
+    {x:35,y:38,img:statueImage,class:'flip'},
     {x:33,y:23,img:statueImage},
     {x:39,y:23,img:statueImage,class:'flip'},
     {x:33,y:18,img:statueImage},
@@ -357,6 +357,8 @@ function distance(obj1,obj2) {
 }
 
 function chooseAction(action) {
+    let newX, newY, curr;
+    let toHighlight = [{x:playerToken.x,y:playerToken.y,val:0}];
     if (playerTurn) {
         highlights = {};
         renderEnemies();
@@ -366,11 +368,28 @@ function chooseAction(action) {
         else
             if (app.spells[action].cost <= app.player.mana)
                 action = app.spells[action];
+        while(true) {
+            curr = toHighlight.shift();
+            if (!curr)
+                break;
+            if (dungeon1Map[curr.y][curr.x] == 1)
+                renderTile(curr.x,curr.y,null,highlightRangeColor);
+            for (let i of cardinalDirs) {
+                newX = curr.x + i[1];
+                newY = curr.y + i[0];
+                if (newX >= 0 && newX < dungeon1Map[0].length && newY >= 0 && newY < dungeon1Map.length && curr.val < action.range)
+                    toHighlight.push({x:newX,y:newY,val:curr.val+1})
+            }
+        }
+        renderTile(playerToken.x,playerToken.y,playerToken,highlightRangeColor);
         for (let i of currEnemies)
             if (inRange(playerToken,i,action.range)) {
                 renderTile(i.x,i.y,i,highlightEnemyColor);
-                highlights[i.x + ':' + i.y] = true;
+                highlights[i.x + ':' + i.y] = highlightEnemyColor;
             }
+        for (let i of scenery)
+            if (inRange(playerToken,i,action.range))
+                renderTile(i.x,i.y,i,highlightRangeColor);
     }
 }
 
@@ -406,7 +425,7 @@ function inRange(obj1,obj2,range) {
 
 function takeAction(y,x) {
     let target;
-    if(highlights[x + ':' + y]) {
+    if(highlights[x + ':' + y] == highlightEnemyColor) {
         target = currEnemies.filter(e => e.x == x && e.y == y)[0].entity;
         if (selectedAction == 'attack')
             app.attack(playerToken.entity, target);
@@ -444,8 +463,17 @@ function startDungeon(){
 
 
     enemies = [
+        // Treasure Room
         {x:7,y:50,img:'images/goblin.png',entity:app.allMonsters['goblin']()},
-        {x:7,y:48,img:'images/goblin.png',entity:app.allMonsters['goblin']()}
+        {x:7,y:48,img:'images/goblin.png',entity:app.allMonsters['goblin']()},
+
+        // Altar Room
+        {x:24,y:48,img:'images/orc.png',entity:app.allMonsters['orc']()},
+        {x:39,y:36,img:'images/goblin.png',entity:app.allMonsters['goblin']()},
+
+        //Statue Room
+        {x:39,y:37,img:'images/orc.png',entity:app.allMonsters['orc']()},
+        {x:39,y:38,img:'images/goblin.png',entity:app.allMonsters['goblin']()},
     ];
 
     renderTile(playerToken.x,playerToken.y,playerToken);

@@ -222,6 +222,7 @@ var app = new Vue({
         this.playerInit();
         this.currEnemy = 0;
         this.monsters['boar'] = this.boar;
+        this.milestones(6)
         this.gameLoop = setInterval(function(){
             if (app.currLocation == 'Wilderness') {
                 if (app.player.isAlive && app.currEnemy && app.currEnemy.isAlive) {
