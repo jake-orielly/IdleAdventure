@@ -3,7 +3,7 @@ var app = new Vue({
     data: {
         playerStats: [],
         monsters:{},
-        locations:['Wilderness','Shop'],
+        locations:['Wilderness','Shop','Dungeon'],
         currLocation: 'Wilderness',
         statInfo: {
             'str':'Strength: determines how hard you hit enemies.',
@@ -20,6 +20,7 @@ var app = new Vue({
         recoveryInterval: 20,
         monsterDeathTick: 0,
         monsterSpawnTime: 50,
+        uid: 0,
         xpToLevel: [0,0],
     },
     methods: {
@@ -32,6 +33,7 @@ var app = new Vue({
             creature.con = con;
             creature.int = int;
             creature.wis = wis;
+            creature.uid = this.newUID();
             creature.isAlive = true;
             creature.isStunned = 0;
             creature.movement = 2;
@@ -61,6 +63,7 @@ var app = new Vue({
                 else
                     this.hp -= amount;
                 this.currHit = -1 * amount;
+                app.$emit('damage',-1*amount,this.uid);
             }
             creature.heal = function(amount){
                 creature.takeDamage(amount * -1);
@@ -94,6 +97,7 @@ var app = new Vue({
             player.spells = ["fire_blast"];
             player.inventory = {};
             player.equipment = {};
+            player.uid = this.newUID();
             player.die = function() {
                 app.currEnemy = 0;
                 document.getElementById('monsterSelector').value = "rest";
@@ -158,6 +162,7 @@ var app = new Vue({
                 defender.takeDamage(damage);
             else {
                 defender.currHitAddon = "Miss";
+                app.$emit('damage','Miss',defender.uid);
             }
         },
         castSpell: function(caster,target,givenSpell) {
@@ -258,6 +263,17 @@ var app = new Vue({
             this.player[stat]++;
             this.player.points--;
             this.$forceUpdate();
+        },
+        changeLocation: function(loc) {
+            this.currLocation = loc;
+            if (loc == 'Dungeon')
+                document.getElementById("dungeonIframe").focus();
+
+        },
+        newUID: function() {
+            let newId = this.uid;
+            this.uid++;
+            return newId;
         },
         prettyPrint: prettyPrint,
         ping: function(string="hello") {

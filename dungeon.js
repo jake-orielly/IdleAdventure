@@ -16,6 +16,8 @@ let enemies = [
 let chestImage = 'images/chest.png';
 let chestOpenImage = 'images/chestOpen.png';
 
+let hideFloating = {};
+
 let scenery = [
     {x:1,y:5,img:chestImage, inventory:
         {copper_coin:[35,50]}
@@ -25,12 +27,13 @@ let scenery = [
 let highlights = {};
 let selectedAction;
 
-let inRangeColor = '#ff00006b';
+let highlightEnemyColor = '#ff00006b';
+let highlightRangeColor = '#003aff33';
 
 function renderTile(x,y,addon,highlightColor) {
     let tileHtml = '';
     let width;
-    tileHtml += getTile();
+    tileHtml += getTile(x,y);
     if (addon) {
         tileHtml += '<img src="' + addon.img + '">';
         if (addon.entity && addon.entity.name != 'player') {
@@ -59,15 +62,26 @@ function movePlayer (x,y) {
         highlights = {};
         if (playerSteps == 0) {
             playerTurn = false;
-            enemyTurn();
+            renderEnemies();
+            setTimeout(enemyTurn,250);
         }
     }
 }
 
 function enemyTurn() {
-    let path,currStep,currEnemy;
+    let path,currStep,currEnemy,killed;
     let currEnemyIndex = 0;
-    enemyMove();
+    let waitTime = 1;
+    killed = enemies.filter(e => !e.entity.isAlive);
+    for (let i of killed)
+        renderTile(i.x,i.y);
+    enemies = enemies.filter(e => e.entity.isAlive);
+    if (killed)
+        waitTime = 500;
+    setTimeout(()=>{
+        renderEnemies();
+        enemyMove();
+    },waitTime)
 
     function enemyMove() {
         if (currEnemyIndex == enemies.length) {
@@ -88,7 +102,7 @@ function enemyTurn() {
                 updateHP();
             }
             currEnemyIndex++;
-            setTimeout(()=>{enemyMove();},200);
+            setTimeout(()=>{enemyMove();},250 * (currEnemy.entity.movement - path.length + 1));
             return;
         }
         renderTile(currEnemy.x,currEnemy.y);
@@ -178,10 +192,20 @@ function keyPress() {
                 }
     }
 }
-function getTile() {
+function getTile(x,y) {
     let floor = '<img src=images/floor.png>';
-    floor += '<span class="floating-num">0</span>'
     return floor;
+}
+
+function buildFloatingNumTable() {
+    let table = ''
+    for (let y = 0; y < cols; y++) {
+        table += '<tr>';
+        for (let x = 0; x < rows; x++)
+            table += `<td><span class="floating-num hidden" id='floating-num-${x}-${y}'>0</span></td>`;
+        table += '</tr>';    
+    }
+    $('#floating-num-table').html(table);
 }
 
 function pathFind(start,end) {
@@ -248,6 +272,7 @@ function distance(obj1,obj2) {
 function chooseAction(action) {
     if (playerTurn) {
         highlights = {};
+        renderEnemies();
         selectedAction = action;
         if (action == 'attack')
             action = {range:1};
@@ -256,10 +281,31 @@ function chooseAction(action) {
                 action = app.spells[action];
         for (let i of enemies)
             if (inRange(playerToken,i,action.range)) {
-                renderTile(i.x,i.y,i,inRangeColor);
+                renderTile(i.x,i.y,i,highlightEnemyColor);
                 highlights[i.x + ':' + i.y] = true;
             }
     }
+}
+
+function floatingNumberTrigger(damage,uid){
+    let target;
+    if (uid == playerToken.entity.uid)
+        target = playerToken;
+    else
+        target = enemies.filter(e => e.entity.uid == uid)[0];
+    $('#floating-num-' + target.x + '-' + target.y).html(damage);
+    $('#floating-num-' + target.x + '-' + target.y).removeClass('hidden');
+    // If already has class, remove and reapply to replay animation
+    if ($('#floating-num-' + target.x + '-' + target.y).hasClass('floating-num-end'))
+        $('#floating-num-' + target.x + '-' + target.y).removeClass('floating-num-end');
+    $('#floating-num-' + target.x + '-' + target.y).addClass('floating-num-end');
+    if (damage != 'Miss')
+        $('#floating-num-' + target.x + '-' + target.y).addClass('hp-color');
+    hideFloating[target.x+'-'+target.y] = setTimeout(()=> {
+        $('#floating-num-' + target.x + '-' + target.y).removeClass('floating-num-end');
+        $('#floating-num-' + target.x + '-' + target.y).addClass('hidden');
+        $('#floating-num-' + target.x + '-' + target.y).removeClass('hp-color');
+    },750);
 }
 
 function inRange(obj1,obj2,range) {
@@ -269,7 +315,7 @@ function inRange(obj1,obj2,range) {
 }
 
 function takeAction(y,x) {
-    let target, killed;
+    let target;
     if(highlights[x + ':' + y]) {
         target = enemies.filter(e => e.x == x && e.y == y)[0].entity;
         if (selectedAction == 'attack')
@@ -279,15 +325,11 @@ function takeAction(y,x) {
             document.getElementById('mana-inner').style.height = app.player.mana/app.player.maxMana()*100 + "%";
         }
         playerTurn = false;
-        enemyTurn();
+        document.getElementById('xp-inner').style.height = app.player.xp/app.xpToLevel[app.player.level+1]*100 + '%';
+        highlights = {};
+        renderEnemies();
+        setTimeout(enemyTurn,250);
     }
-    killed = enemies.filter(e => !e.entity.isAlive);
-    for (let i of killed)
-        renderTile(i.x,i.y);
-    enemies = enemies.filter(e => e.entity.isAlive);
-    renderEnemies();
-    document.getElementById('xp-inner').style.height = app.player.xp/app.xpToLevel[app.player.level+1]*100 + '%';
-    highlights = {};
 }
 
 function startDungeon(){
@@ -298,7 +340,7 @@ function startDungeon(){
     for (var i = 0; i < cols; i++) {
         row = '<tr>';
         for (var j = 0; j < rows; j++) {
-            cell = '<td onclick="takeAction(' + i + ',' + j + ')" id="' + i + ':' + j + '">' + getTile() + '</td>'
+            cell = '<td onclick="takeAction(' + i + ',' + j + ')" id="' + i + ':' + j + '">' + getTile(j,i) + '</td>'
             row += cell;
         }
         row += '</tr>';
@@ -322,12 +364,15 @@ function startDungeon(){
     updateMana();
     updateXP();
 
+    buildFloatingNumTable();
     renderInventory();
 
     document.addEventListener('keydown', keyPress);
     app.$on('invChange', function() {
         renderInventory();
     });
+    app.$on('damage', function(damage,uid) {
+        floatingNumberTrigger(damage,uid);
+    });
 }
-
 startDungeon();

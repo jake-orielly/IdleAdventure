@@ -7,6 +7,7 @@ body {
 td {
     position: relative;
     padding: 0;
+    user-select: none;
 }
 
 img, .highlight {
@@ -32,10 +33,6 @@ td, img, .highlight {
     top: 0;
     height: 6em;
     width: 10em;
-}
-
-.floating-num {
-    position: absolute;
 }
 
 /* Progress Bars */
@@ -109,4 +106,31 @@ td, img, .highlight {
 #player-inventory-table td {
     width: auto;
     padding-right: 0.5em;
+}
+
+/* Floating Nums */
+#floating-num-table {
+    position: absolute;
+    top: -1em;
+}
+.floating-num {
+    position: absolute;
+    font-weight:bold;
+    font-size: 1.5em;
+    z-index: 15;
+    user-select: none;
+}
+
+.floating-num-end {
+    transition: transform 0.25s;
+    transform: translate(1.5em,-1.5em);
+}
+
+.hp-color {
+    text-shadow: 1px 1px 0px black;
+    color: red;
+}
+
+.hidden {
+    opacity: 0;
 }

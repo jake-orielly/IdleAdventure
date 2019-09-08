@@ -11,7 +11,7 @@
         <div id="app">
             <div v-if="currLocation != 'Dungeon'" id="locations-container">
                 <ul id="locations-menu">
-                    <li v-for="loc in locations" @click="currLocation = loc" class="locations-menu-item clickable">
+                    <li v-for="loc in locations" @click="changeLocation(loc)" class="locations-menu-item clickable">
                         {{loc}}
                     </li>
                 </ul>
@@ -117,8 +117,8 @@
             <div v-if="currLocation == 'Shop'">
                 <shop v-bind:app="this"></shop>
             </div>
-            <div v-if="currLocation == 'Dungeon'" id="dungeon-container">
-                <iframe src="dungeon.html"></iframe>
+            <div :class="{'hidden' : currLocation != 'Dungeon'}" id="dungeon-container">
+                <iframe src="dungeon.html" id="dungeonIframe"></iframe>
             </div>
         </div>
         <script src="app.js"></script>
