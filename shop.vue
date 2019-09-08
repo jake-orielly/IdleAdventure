@@ -1,11 +1,12 @@
 Vue.component('shop', {
   props: {
     app: Object,
+    newItems: Array,
   },
   data: function () {
     return {
         buyMultiplier: 1.5,
-        inventory: {bread:1,copper_dagger:1,copper_breastplate:1},
+        inventory: {},
         items: items,
     }
   },
@@ -28,6 +29,8 @@ Vue.component('shop', {
       if (this.$children[0])
         this.$children[0].$forceUpdate();
     });
+    for (let i of this.newItems)
+      this.$set(this.inventory, i, 1)
   },
   template: `<div>
     <table>
@@ -35,6 +38,8 @@ Vue.component('shop', {
             <td>{{prettyPrint(items[item]().name)}}</td>
             <td>{{parseInt(items[item]().value * buyMultiplier)}}</td>
             <td><span @click="buy(item)" class="buy-button clickable">Buy</span></td>
+            <td class='itemStats'>{{(items[item]().slot != 'weapon' ? 'AC +' + items[item]().effects.ac :
+             'Hit Chance + ' + items[item]().effects.toHit + ', Damage +' + items[item]().effects.damage)}}</td>
         </tr>
     </table>
     <ul>

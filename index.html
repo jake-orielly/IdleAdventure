@@ -115,7 +115,7 @@
                 </div>
             </div>
             <div v-if="currLocation == 'Shop'">
-                <shop v-bind:app="this"></shop>
+                <shop v-bind:app="this" v-bind:new-items="newItems"></shop>
             </div>
             <div :class="{'hidden' : currLocation != 'Dungeon'}" id="dungeon-container">
                 <iframe src="dungeon.html" id="dungeonIframe"></iframe>

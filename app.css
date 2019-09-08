@@ -148,6 +148,14 @@ iframe {
     text-decoration: underline;
 }
 
+.itemStats {
+    display: none;
+}
+
+tr:hover .itemStats {
+    display: block;
+}
+
 /* Inventory UI */
 .inventory-item-use {
     text-decoration: underline;

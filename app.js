@@ -21,6 +21,7 @@ var app = new Vue({
         monsterDeathTick: 0,
         monsterSpawnTime: 50,
         uid: 0,
+        newItems: [],
         xpToLevel: [0,0],
     },
     methods: {
@@ -94,7 +95,7 @@ var app = new Vue({
             player.xp = 0;
             player.level = 1;
             player.points = 0;
-            player.spells = ["fire_blast"];
+            player.spells = [];
             player.inventory = {};
             player.equipment = {};
             player.uid = this.newUID();
@@ -203,18 +204,51 @@ var app = new Vue({
                 this.playerStats.push('agi');
             else if (level == 5)
                 this.playerStats.push('con');
-            else if (level == 6) {
+            else if (level == 6)
                 this.playerStats.push('int');
-                this.player.spells.push('fire_blast');
-            }
-            else if (level == 7)
-                this.playerStats.push('wis');
             else if (level == 8)
-                this.player.spells.push('ice_blast');
+                this.playerStats.push('wis');
 
             // Monster reveal milestones
             if (level == 4)
                 this.monsters['goblin'] = this.goblin;
+
+            // Spell milestones
+            if (level == 6)
+                this.player.spells.push('fire_blast');
+            else if (level == 10)
+                this.player.spells.push('ice_blast');
+
+            // Item Milestones
+            if (level == 4)
+                this.newItems.push('bread');
+            if (level == 7)
+                this.newItems.push('copper_dagger');
+            if (level == 9) {
+                this.newItems.push('copper_sword');
+                this.newItems.push('copper_axe');
+                this.newItems.push('copper_mace');
+            }
+            if (level == 11) {
+                this.newItems.push('copper_breastplate');
+                this.newItems.push('copper_greaves');
+                this.newItems.push('copper_helmet');
+                this.newItems.push('copper_gauntlets');
+            }
+            if (level == 12)
+                this.newItems.push('iron_dagger');
+            if (level == 13) {
+                this.newItems.push('iron_sword');
+                this.newItems.push('iron_axe');
+                this.newItems.push('iron_mace');
+            }
+            if (level == 14) {
+                this.newItems.push('iron_breastplate');
+                this.newItems.push('iron_greaves');
+                this.newItems.push('iron_helmet');
+                this.newItems.push('iron_gauntlets');
+            }
+
         },
         d20: function() {
             return parseInt(Math.random()*20) + 1;
