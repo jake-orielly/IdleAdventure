@@ -3,7 +3,7 @@ var app = new Vue({
     data: {
         playerStats: [],
         monsters:{},
-        locations:['Wilderness','Shop','Dungeon'],
+        locations:['Wilderness','Dungeon'],
         currLocation: 'Wilderness',
         statInfo: {
             'str':'Strength: determines how hard you hit enemies.',
@@ -13,6 +13,7 @@ var app = new Vue({
             'wis': 'Wisdom: determines how quickly your mana regenerates.'
         },
         items: items,
+        allMonsters: allMonsters,
         spells: spells,
         gameTick: 1,
         gameTickInterval: 20,
@@ -20,76 +21,10 @@ var app = new Vue({
         recoveryInterval: 20,
         monsterDeathTick: 0,
         monsterSpawnTime: 50,
-        uid: 0,
         newItems: [],
         xpToLevel: [0,0],
     },
     methods: {
-        newCreature: function(name,str,agi,con,int,wis,ac) {
-            let creature = {};
-            creature.name = name;
-            creature.ac = ac;
-            creature.str = str;
-            creature.agi = agi;
-            creature.con = con;
-            creature.int = int;
-            creature.wis = wis;
-            creature.uid = this.newUID();
-            creature.isAlive = true;
-            creature.isStunned = 0;
-            creature.movement = 2;
-            
-            creature.maxHP = function() {
-                return this.con * 2;
-            }
-            creature.hp = creature.maxHP();
-
-            creature.maxMana = function() {
-                return this.wis * 3;
-            }
-            creature.mana = creature.maxMana();
-
-            creature.takeDamage = function(amount) {
-                // Catch overkill
-                if (amount >= this.hp) {
-                    this.hp = 0;
-                    this.isAlive = false;
-                    this.die();
-                }
-                // Catch overheal
-                else if (amount < 0 && this.hp - amount >= creature.maxHP()) {
-                    this.hp = this.maxHP();
-                    this.isAlive = true;
-                }
-                else
-                    this.hp -= amount;
-                this.currHit = -1 * amount;
-                app.$emit('damage',-1*amount,this.uid);
-            }
-            creature.heal = function(amount){
-                creature.takeDamage(amount * -1);
-            }
-            creature.dmgRoll = function() {
-                return parseInt(Math.random() * this.str) + 1;
-            }
-            creature.toHit = function() {
-                let roll = app.d20();
-                if (roll == 20)
-                    return "crit";
-                else {
-                    return roll + this.agi;
-                }
-            }
-
-            if (creature.name != "player")
-                creature.die = function() {
-                    app.giveXP(this.xpVal);
-                    if (this.loot)
-                        for (let i of this.loot)
-                            addItem(app.player.inventory,items[i.name](),i.amount);
-                }
-            return creature;
-        },
         playerInit: function() {
             let player = this.newCreature("player",2,2,5,4,5,12);
             player.xp = 0;
@@ -98,7 +33,7 @@ var app = new Vue({
             player.spells = [];
             player.inventory = {};
             player.equipment = {};
-            player.uid = this.newUID();
+            player.uid = 0;
             player.die = function() {
                 app.currEnemy = 0;
                 document.getElementById('monsterSelector').value = "rest";
@@ -123,21 +58,10 @@ var app = new Vue({
 
             this.player = player;
         },
+        newCreature: newCreature,
         addItem: addItem,
         removeItem: removeItem,
 
-        // Enemies
-        boar: function() {
-            let boar = this.newCreature("boar",1,1,2.5,0,0,6);
-            boar.xpVal = 8;
-            return boar;
-        },
-        goblin: function() {
-            let goblin = this.newCreature('goblin',2,2,4,0,0,8);
-            goblin.xpVal = 13;
-            goblin.loot = [{name:'copper_coin',amount:[1,3]}];
-            return goblin;
-        },
         attack: function(attacker,defender) {
             let damage = attacker.dmgRoll();
             let toHit = attacker.toHit();
@@ -197,57 +121,36 @@ var app = new Vue({
             }
         },
         milestones(level) {
-            // Stat reveal milestones
-            if (level == 2)
-                this.playerStats.push('str');
-            else if (level == 3)
-                this.playerStats.push('agi');
-            else if (level == 5)
-                this.playerStats.push('con');
-            else if (level == 6)
-                this.playerStats.push('int');
-            else if (level == 8)
-                this.playerStats.push('wis');
-
-            // Monster reveal milestones
-            if (level == 4)
-                this.monsters['goblin'] = this.goblin;
-
-            // Spell milestones
-            if (level == 6)
-                this.player.spells.push('fire_blast');
-            else if (level == 10)
-                this.player.spells.push('ice_blast');
-
+            let milestones = [
+                {},
+                {},
+                {'stat':'str'}, // lvl 2
+                {'stat':'agi'}, // lvl 3
+                {'monster':'goblin','location':'Shop','items':['bread']}, // lvl 4
+                {'stat':'con'}, // lvl 5
+                {'stat':'int','spell':'fire_blast'}, // lvl 6
+                {'items':['copper_dagger']}, // lvl 7
+                {'stat':'wis'}, // lvl 8
+                {'items':['copper_sword','copper_axe','copper_mace']}, // lvl 9
+                {'spell':'ice_blast'}, // lvl 10
+                {'items':['copper_breastplate','copper_greaves','copper_helmet','copper_gauntlets']}, // lvl 11
+                {'items':['iron_dagger']}, // lvl 12
+                {'items':['iron_sword','iron_axe','iron_mace']}, // lvl 13
+                {'items':['iron_breastplate','iron_greaves','iron_helmet','iron_gauntlets']}, // lvl 14
+            ];
+            let currMilestone = milestones[level];
+            if (currMilestone['stat'])
+                this.playerStats.push(currMilestone['stat']);
+            if (currMilestone['monster'])
+                this.monsters[currMilestone['monster']] = this.allMonsters[currMilestone['monster']];
+            if (currMilestone['spell'])
+                this.player.spells.push(currMilestone['spell']);
+            if (currMilestone['location'])
+                this.locations.push(currMilestone['location']);
             // Item Milestones
-            if (level == 4)
-                this.newItems.push('bread');
-            if (level == 7)
-                this.newItems.push('copper_dagger');
-            if (level == 9) {
-                this.newItems.push('copper_sword');
-                this.newItems.push('copper_axe');
-                this.newItems.push('copper_mace');
-            }
-            if (level == 11) {
-                this.newItems.push('copper_breastplate');
-                this.newItems.push('copper_greaves');
-                this.newItems.push('copper_helmet');
-                this.newItems.push('copper_gauntlets');
-            }
-            if (level == 12)
-                this.newItems.push('iron_dagger');
-            if (level == 13) {
-                this.newItems.push('iron_sword');
-                this.newItems.push('iron_axe');
-                this.newItems.push('iron_mace');
-            }
-            if (level == 14) {
-                this.newItems.push('iron_breastplate');
-                this.newItems.push('iron_greaves');
-                this.newItems.push('iron_helmet');
-                this.newItems.push('iron_gauntlets');
-            }
+            if (currMilestone['items'])
+                for (let i of currMilestone['items'])
+                    this.newItems.push(i);
 
         },
         d20: function() {
@@ -303,11 +206,6 @@ var app = new Vue({
             if (loc == 'Dungeon')
                 document.getElementById("dungeonIframe").focus();
 
-        },
-        newUID: function() {
-            let newId = this.uid;
-            this.uid++;
-            return newId;
         },
         prettyPrint: prettyPrint,
         ping: function(string="hello") {

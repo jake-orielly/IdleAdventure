@@ -38,8 +38,8 @@ Vue.component('shop', {
             <td>{{prettyPrint(items[item]().name)}}</td>
             <td>{{parseInt(items[item]().value * buyMultiplier)}}</td>
             <td><span @click="buy(item)" class="buy-button clickable">Buy</span></td>
-            <td class='itemStats'>{{(items[item]().slot != 'weapon' ? 'AC +' + items[item]().effects.ac :
-             'Hit Chance + ' + items[item]().effects.toHit + ', Damage +' + items[item]().effects.damage)}}</td>
+            <td class='itemStats'>{{(items[item]().slot != 'weapon' && items[item]().slot ? 'AC +' + items[item]().effects.ac : '')}}
+            {{(items[item]().slot == 'weapon' ? 'Hit Chance + ' + items[item]().effects.toHit + ', Damage +' + items[item]().effects.damage : '')}}</td>
         </tr>
     </table>
     <ul>

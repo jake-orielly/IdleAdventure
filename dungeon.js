@@ -9,8 +9,8 @@ let playerToken = {x:1, y:3, img: 'images/player.png',entity:app.player};
 let playerTurn = true;
 let playerSteps = 2;
 let enemies = [
-  {x:3,y:4,img:'images/enemy.png',entity:app.goblin()},
-  {x:5,y:4,img:'images/enemy.png',entity:app.goblin()}
+  {x:3,y:4,img:'images/enemy.png',entity:app.allMonsters['goblin']()},
+  {x:5,y:4,img:'images/enemy.png',entity:app.allMonsters['goblin']()}
 ];
 
 let chestImage = 'images/chest.png';
