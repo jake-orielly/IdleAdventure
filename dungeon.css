@@ -34,6 +34,10 @@ td, img, .highlight {
     width: 10em;
 }
 
+.floating-num {
+    position: absolute;
+}
+
 /* Progress Bars */
 .progress-bar-horiz {
     position:absolute;

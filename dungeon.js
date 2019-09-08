@@ -3,6 +3,8 @@ let app = window.parent.app;
 let rows = 10;
 let cols = 10;
 
+let cardinalDirs = [[-1,0],[0,1],[1,0],[0,-1]];
+
 let playerToken = {x:1, y:3, img: 'images/player.png',entity:app.player};
 let playerTurn = true;
 let playerSteps = 2;
@@ -46,12 +48,8 @@ function renderTile(x,y,addon,highlightColor) {
 function movePlayer (x,y) {
     let newX = playerToken.x + x;
     let newY = playerToken.y + y;
-    if (playerTurn && newX >= 0 && newX < rows && newY >= 0 && newY < cols && !collision(newX,newY,playerToken)) {
+    if (playerTurn && onBoard(newX,newY) && !collision(newX,newY,playerToken)) {
         playerSteps--;
-        if (playerSteps == 0) {
-            playerTurn = false;
-            enemyTurn();
-        }
         renderTile(playerToken.x,playerToken.y);
         playerToken.x += x;
         playerToken.y += y;
@@ -59,12 +57,47 @@ function movePlayer (x,y) {
         document.getElementById("player-steps").innerHTML = playerSteps;
         renderEnemies();
         highlights = {};
+        if (playerSteps == 0) {
+            playerTurn = false;
+            enemyTurn();
+        }
     }
 }
+
 function enemyTurn() {
-    renderEnemies();
-    playerSteps = 2;
-    playerTurn = true;
+    let path,currStep,currEnemy;
+    let currEnemyIndex = 0;
+    enemyMove();
+
+    function enemyMove() {
+        if (currEnemyIndex == enemies.length) {
+            playerSteps = 2;
+            playerTurn = true;
+            return;
+        }
+        currEnemy = enemies[currEnemyIndex];
+        currStep = 0;
+        path = pathFind(currEnemy,playerToken);
+        enemyStep();
+    }
+
+    function enemyStep() {
+        if (currStep == path.length) {
+            if (currStep < currEnemy.entity.movement) {
+                app.attack(currEnemy.entity,playerToken.entity);
+                updateHP();
+            }
+            currEnemyIndex++;
+            setTimeout(()=>{enemyMove();},200);
+            return;
+        }
+        renderTile(currEnemy.x,currEnemy.y);
+        currEnemy.x = path[currStep].x;
+        currEnemy.y = path[currStep].y;
+        renderTile(currEnemy.x,currEnemy.y,currEnemy);
+        currStep++
+        setTimeout(()=>{enemyStep(currEnemy);},100);
+    }
 }
 
 function renderEnemies() {
@@ -100,6 +133,10 @@ function renderInventory() {
         inventory += row;
     }
     document.getElementById('player-inventory-table').innerHTML = inventory;
+}
+
+function onBoard(x,y) {
+    return (x >= 0 && x < rows && y >= 0 && y < cols)
 }
 
 function collision(x,y,token) {
@@ -143,28 +180,90 @@ function keyPress() {
 }
 function getTile() {
     let floor = '<img src=images/floor.png>';
+    floor += '<span class="floating-num">0</span>'
     return floor;
 }
 
-function chooseAction(action) {
-    highlights = {};
-    selectedAction = action;
-    if (action == 'attack')
-        action = {range:1};
-    else
-        if (app.spells[action].cost <= app.player.mana)
-            action = app.spells[action];
+function pathFind(start,end) {
+    let valGrid = [];
+    let toCheck = [];
+    let curr, newX, newY, currX, currY, minPath;
+    let result = [];
+    let minVal = 10000;
+
+    for (let i = 0; i < cols; i++) {
+        valGrid[i] = [];
+        for (let j = 0; j < rows; j++)
+            valGrid[i][j] = 10000;
+    }
+    for (let i of scenery)
+        valGrid[i.y][i.x] = -1;
     for (let i of enemies)
+        valGrid[i.y][i.x] = -1;
+    toCheck.push({x:end.x,y:end.y,val:0})
+    
+    while (true) {
+        curr = toCheck.shift();
+        if (!curr)
+            break;
+        if (curr.val < valGrid[curr.y][curr.x]) {
+            valGrid[curr.y][curr.x] = curr.val;
+            for (let i of cardinalDirs) {
+                newX = curr.x + i[1];
+                newY = curr.y + i[0];
+                if (onBoard(newX,newY))
+                    toCheck.push({x:newX,y:newY,val:curr.val+1})
+            }
+        }
+    }
+    currX = start.x;
+    currY = start.y;
+    while (result.length < start.entity.movement) {
+        for (let i of cardinalDirs) {
+            newX = currX + i[1];
+            newY = currY + i[0];
+            if (onBoard(newY,newX) && valGrid[newY][newX] >= 0 && (valGrid[newY][newX] < minVal || 
+            // If there are two options with equal length path to target pick the one that minimizes linear distance
+            (valGrid[newY][newX] == minVal && (distance({x:newX,y:newY},{x:end.x,y:end.y}) < distance({x:currX,y:currY},{x:end.x,y:end.y}))))) {
+                minVal = valGrid[newY][newX];
+                minPath = {x:newX,y:newY};
+                // If we're adjacent to target, return without adding
+                if (minVal == 0)
+                    return result;
+            }
+        }
+        currX = minPath.x;
+        currY = minPath.y;
+        result.push(minPath);
+    }
+    return result;
+}
+
+function distance(obj1,obj2) {
+    let xDiff = obj1.x - obj2.x;
+    let yDiff = obj1.y - obj2.y;
+    return Math.abs(xDiff) + Math.abs(yDiff);
+}
+
+function chooseAction(action) {
+    if (playerTurn) {
+        highlights = {};
+        selectedAction = action;
+        if (action == 'attack')
+            action = {range:1};
+        else
+            if (app.spells[action].cost <= app.player.mana)
+                action = app.spells[action];
+        for (let i of enemies)
             if (inRange(playerToken,i,action.range)) {
                 renderTile(i.x,i.y,i,inRangeColor);
                 highlights[i.x + ':' + i.y] = true;
             }
+    }
 }
 
 function inRange(obj1,obj2,range) {
-    let xDiff = obj1.x - obj2.x;
-    let yDiff = obj1.y - obj2.y;
-    if (Math.abs(xDiff) + Math.abs(yDiff) <= range)
+    if (distance(obj1,obj2) <= range)
         return true;
     return false;
 }
@@ -179,6 +278,8 @@ function takeAction(y,x) {
             app.castSpell(playerToken.entity,target,selectedAction)
             document.getElementById('mana-inner').style.height = app.player.mana/app.player.maxMana()*100 + "%";
         }
+        playerTurn = false;
+        enemyTurn();
     }
     killed = enemies.filter(e => !e.entity.isAlive);
     for (let i of killed)

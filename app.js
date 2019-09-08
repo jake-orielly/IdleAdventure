@@ -35,6 +35,7 @@ var app = new Vue({
             creature.wis = wis;
             creature.isAlive = true;
             creature.isStunned = 0;
+            creature.movement = 2;
             
             creature.maxHP = function() {
                 return this.con * 2;
