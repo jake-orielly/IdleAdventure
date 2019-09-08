@@ -1,7 +1,6 @@
 <html>
     <head>
         <link rel="stylesheet" href="app.css">
-        <link rel="stylesheet" href="dungeon.css">
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
         <script src="utilityFunctions.js"></script>
         <script src="items.js"></script>
@@ -69,12 +68,12 @@
                         </ul>
                     </div>
                     <div v-if="player.isAlive">
-                        <span v-if="Object.keys(monsters).length > 1">Next:</span> 
-                        <select v-if="Object.keys(monsters).length > 1" id="monsterSelector" v-model="nextMonster">
+                        <span>Next:</span> 
+                        <select id="monsterSelector" @change="enemySelect">
+                            <option value="Rest">Rest</option>
                             <option v-for="monster in Object.keys(monsters)" :value="monster">{{prettyPrint(monster)}}</option>
                         </select>
-                        <span v-if="Object.keys(monsters).length == 1">{{prettyPrint(currEnemy.name)}}</span>
-                        <div class="progress-bar hp-empty">
+                        <div class="progress-bar hp-empty" v-if="currEnemy">
                             <div class="progress-bar-inner hp-full"
                             :style="{width: currEnemy.hp/currEnemy.maxHP()*100 + '%'}">
                             </div>

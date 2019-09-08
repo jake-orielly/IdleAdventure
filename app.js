@@ -4,8 +4,7 @@ var app = new Vue({
         playerStats: [],
         monsters:{},
         locations:['Wilderness','Shop'],
-        currLocation: 'Dungeon',
-        nextMonster: '',
+        currLocation: 'Wilderness',
         statInfo: {
             'str':'Strength: determines how hard you hit enemies.',
             'agi':'Agility: determines your chance of hitting an enemy.',
@@ -96,7 +95,8 @@ var app = new Vue({
             player.inventory = {};
             player.equipment = {};
             player.die = function() {
-                app.currEnemy = app.monsters[app.nextMonster]();
+                app.currEnemy = 0;
+                document.getElementById('monsterSelector').value = "rest";
             }
             player.rest = function() {
                 let amount = this.con/30;
@@ -218,6 +218,10 @@ var app = new Vue({
             let neededXP = this.xpToLevel[level-1] + Math.floor(level + 100 * Math.pow(2, level / 7))/4;
             return parseInt(neededXP);
         },
+        enemySelect() {
+            if (document.getElementById('monsterSelector').value != 'Rest')
+                app.currEnemy = app.monsters[document.getElementById('monsterSelector').value]();
+        },
         simulate: function(monster,trials){
             let results = [];
             let curr;
@@ -264,17 +268,16 @@ var app = new Vue({
         for (let i = 2; i < 1000; i++)
             this.xpToLevel[i] = this.xpFunc(i);
         this.playerInit();
+        this.currEnemy = 0;
         this.monsters['boar'] = this.boar;
-        this.currEnemy = this.boar();
-        this.nextMonster = 'boar';
         this.gameLoop = setInterval(function(){
-            if (this.currLocation == 'Wilderness') {
-                if (app.player.isAlive && app.currEnemy.isAlive) {
+            if (app.currLocation == 'Wilderness') {
+                if (app.player.isAlive && app.currEnemy && app.currEnemy.isAlive) {
                     if (app.gameTick % app.turnInterval == 0) {
                         app.playerTurn();
                         app.$forceUpdate();
                     }
-                    else if (app.gameTick % app.turnInterval == parseInt(app.turnInterval/2)) {
+                    else if (app.gameTick % app.turnInterval == parseInt(app.turnInterval/2) && app.currEnemy) {
                         if (app.currEnemy.isStunned == 0 || app.currEnemy.isStunned == 1) {
                             if (app.currEnemy.isStunned == 1)
                                 app.currEnemy.isStunned = 0;
@@ -285,11 +288,16 @@ var app = new Vue({
                             app.currEnemy.isStunned--;
                     }
                 }
-                else if (!app.currEnemy.isAlive) {
+                else if (app.currEnemy && !app.currEnemy.isAlive) {
                     if (!app.monsterDeathTick)
                         app.monsterDeathTick = app.gameTick;
                     else if (app.gameTick == app.monsterDeathTick + app.monsterSpawnTime) {
-                        app.currEnemy = app.monsters[app.nextMonster]();
+                        if (document.getElementById('monsterSelector').value == 'Rest') {
+                            app.currEnemy = 0;
+                            app.player.rest();
+                        }
+                        else
+                            app.currEnemy = app.monsters[document.getElementById('monsterSelector').value]();
                         app.monsterDeathTick = 0;
                         app.$forceUpdate();
                     }
