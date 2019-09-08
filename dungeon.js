@@ -10,21 +10,36 @@ let playerTurn = true;
 let playerSteps = 2;
 let xVisMod,yVisMod, sightRange;
 let enemies = [
-  {x:5,y:51,img:'images/enemy.png',entity:app.allMonsters['goblin']()},
-  {x:5,y:52,img:'images/enemy.png',entity:app.allMonsters['goblin']()}
+  {x:7,y:50,img:'images/goblin.png',entity:app.allMonsters['goblin']()},
+  {x:7,y:48,img:'images/goblin.png',entity:app.allMonsters['goblin']()}
 ];
 let currEnemies = [];
 
-let floorTileImages = ['images/empty.png','images/floor.png']
+let floorTileImages = ['images/empty.png','images/floor.png','images/wall.png']
 let chestImage = 'images/chest.png';
 let chestOpenImage = 'images/chestOpen.png';
+
+let altarImage = 'images/altar.png';
+let statueImage = 'images/statue.png';
+let fountainImage = 'images/fountain.png';
+let columnImage = 'images/column.png';
 
 let hideFloating = {};
 
 let scenery = [
-    {x:8,y:50,img:chestImage, inventory:
+    {x:7,y:49,img:chestImage, inventory:
         {copper_coin:[35,50]}
-    }
+    },
+    {x:24,y:49,img:altarImage},
+    {x:25,y:49,img:columnImage},
+    {x:23,y:49,img:columnImage},
+    {x:24,y:38,img:fountainImage},
+    {x:36,y:36,img:statueImage,class:'flip'},
+    {x:36,y:38,img:statueImage,class:'flip'},
+    {x:33,y:23,img:statueImage},
+    {x:39,y:23,img:statueImage,class:'flip'},
+    {x:33,y:18,img:statueImage},
+    {x:39,y:18,img:statueImage,class:'flip'},
 ];
 
 let highlights = {};
@@ -36,9 +51,12 @@ let highlightRangeColor = '#003aff33';
 function renderTile(x,y,addon,highlightColor) {
     let tileHtml = '';
     let width;
+    let addonClass = '';
+    if (addon && addon.class)
+        addonClass = addon.class;
     tileHtml += getTile(x,y);
     if (addon) {
-        tileHtml += '<img src="' + addon.img + '">';
+        tileHtml += '<img class="' + addonClass + '" src="' + addon.img + '">';
         if (addon.entity && addon.entity.name != 'player') {
             width = addon.entity.hp/addon.entity.maxHP()*100;
             tileHtml += `<div class="progress-bar-horiz hp-empty">
@@ -180,7 +198,7 @@ function onScreen(token) {
 
 function collision(x,y,token) {
     let curr;
-    if (dungeon1Map[y][x] == 0)
+    if (dungeon1Map[y][x] != 1)
         return true;
     if (token != playerToken) {
         curr = playerToken;
@@ -220,7 +238,29 @@ function keyPress() {
     }
 }
 function getTile(x,y) {
-    let floor = '<img id="img-' + y + ':' + x + '" src="' + floorTileImages[dungeon1Map[y][x]] + '">';
+    let floor, newX, newY;
+    let rots = ['','rot90','rot180','rot270'];
+    let cornerRots = {'01':'','12':'rot90','23':'rot180','03':'rot270'};
+    let found = [];
+    let found2 = [];
+    if (dungeon1Map[y][x] == 2) {
+        for (let i = 0; i < cardinalDirs.length; i++) {
+            newX = x + cardinalDirs[i][1];
+            newY = y + cardinalDirs[i][0];
+            if (newX >= 0 && newX < dungeon1Map[0].length && newY > 0 && newY < dungeon1Map.length) {
+                if(dungeon1Map[newY][newX] == 1)
+                    found.push(i);
+                else if(dungeon1Map[newY][newX] == 2)
+                    found2.push(i);
+            }
+        }
+    }
+    if (found.length == 2)
+        floor = '<img class="' + cornerRots[found.join('')] + '" id="img-' + y + ':' + x + '" src="images/corner.png">';
+    else if (found2.length == 2 && (found2[0] + found2[1]) % 2 == 1) 
+        floor = '<img class="' + cornerRots[found2.join('')] + '" id="img-' + y + ':' + x + '" src="images/cornerSmall.png">';
+    else
+        floor = '<img class="' + rots[found[0]] + '" id="img-' + y + ':' + x + '" src="' + floorTileImages[dungeon1Map[y][x]] + '">';
     return floor;
 }
 
@@ -267,7 +307,8 @@ function pathFind(start,end) {
         }
     }
     for (let i of scenery)
-        valGrid[i.y][i.x] = -1;
+        if (onScreen(i))
+            valGrid[i.y][i.x] = -1;
     for (let i of currEnemies)
         valGrid[i.y][i.x] = -1;
     toCheck.push({x:end.x,y:end.y,val:0})
