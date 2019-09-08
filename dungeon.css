@@ -61,6 +61,10 @@ td, img, .highlight {
     transition-timing-function: ease-in-out;
 }
 
+.progress-bar-vert .progress-bar-inner{
+    height: 0;
+}
+
 .hp-full {
     background-color: green;
 }
@@ -95,4 +99,10 @@ td, img, .highlight {
 
 .mana-empty {
     background-color: #9c27b04f;
+}
+
+/* Inventory */
+#player-inventory-table td {
+    width: auto;
+    padding-right: 0.5em;
 }

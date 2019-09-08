@@ -11,6 +11,15 @@ let enemies = [
   {x:5,y:4,img:'images/enemy.png',entity:app.goblin()}
 ];
 
+let chestImage = 'images/chest.png';
+let chestOpenImage = 'images/chestOpen.png';
+
+let scenery = [
+    {x:1,y:5,img:chestImage, inventory:
+        {copper_coin:[35,50]}
+    }
+];
+
 let highlights = {};
 let selectedAction;
 
@@ -22,7 +31,7 @@ function renderTile(x,y,addon,highlightColor) {
     tileHtml += getTile();
     if (addon) {
         tileHtml += '<img src="' + addon.img + '">';
-        if (addon.entity.name != 'player') {
+        if (addon.entity && addon.entity.name != 'player') {
             width = addon.entity.hp/addon.entity.maxHP()*100;
             tileHtml += `<div class="progress-bar-horiz hp-empty">
             <div class="progress-bar-inner hp-full" style="width:${width}%"></div>
@@ -62,6 +71,37 @@ function renderEnemies() {
     for (let i of enemies)
         renderTile(i.x,i.y,i);
 }
+
+function renderScenery() {
+    for (let i of scenery)
+        renderTile(i.x,i.y,i);
+}
+
+function updateHP() {
+    document.getElementById('hp-inner').style.height = app.player.hp/app.player.maxHP()*100 + "%";
+}
+
+function updateMana() {
+    document.getElementById('mana-inner').style.height = app.player.mana/app.player.maxMana()*100 + "%";
+}
+
+function updateXP() {
+    document.getElementById('xp-inner').style.height = app.player.xp/app.xpToLevel[app.player.level+1]*100 + '%';
+}
+
+function renderInventory() {
+    let inventory = '';
+    let row;
+    for (let i in app.player.inventory) {
+        row = '<tr>';
+        row += '<td>' + prettyPrint(i) + '</td>';
+        row += '<td>' + app.player.inventory[i] + '</td>';
+        row += '</tr>';
+        inventory += row;
+    }
+    document.getElementById('player-inventory-table').innerHTML = inventory;
+}
+
 function collision(x,y,token) {
     let curr;
     if (token != playerToken) {
@@ -70,11 +110,15 @@ function collision(x,y,token) {
             return true;
     }
     for (let i = 0; i < enemies.length; i++)
-    if (enemies[i] != token) {
-        curr = enemies[i];
-        if (curr.x == x && curr.y == y)
-            return true;
-    }
+        if (enemies[i] != token) {
+            curr = enemies[i];
+            if (curr.x == x && curr.y == y)
+                return true;
+        }
+    for (let i = 0; i < scenery.length; i++)
+        if (scenery[i] != token)
+            if (scenery[i].x == x && scenery[i].y == y)
+                return true;
     return false;
 }
 function keyPress() {
@@ -86,6 +130,16 @@ function keyPress() {
         movePlayer(-1,0);
     else if (event.key == 'd')
         movePlayer(1,0);
+    else if (event.key == 'e' || event.key == ' ') {
+        for (let i of scenery)
+            if (i.img == chestImage && inRange(playerToken,i,1))
+                for (let j in i.inventory) {
+                    addItem(app.player.inventory,app.items[j](),i.inventory[j]);
+                    removeItem(i.inventory,app.items[j](),'all');
+                    i.img = chestOpenImage;
+                    renderTile(i.x,i.y,i);
+                }
+    }
 }
 function getTile() {
     let floor = '<img src=images/floor.png>';
@@ -160,16 +214,18 @@ function startDungeon(){
     document.getElementById('player-action-container').innerHTML = buttons;
 
     renderTile(playerToken.x,playerToken.y,playerToken);
-    for (let i = 0; i < enemies.length; i++)
-        renderTile(enemies[i].x,enemies[i].y,enemies[i]);
+    renderEnemies();
+    renderScenery();
         
-    document.getElementById('hp-inner').style.height = app.player.hp/app.player.maxHP()*100 + "%";
-    document.getElementById('mana-inner').style.height = app.player.mana/app.player.maxMana()*100 + "%";
-    document.getElementById('xp-inner').style.height = app.player.xp/app.xpToLevel[app.player.level+1]*100 + '%';
+    updateHP();
+    updateMana();
+    updateXP();
+
+    renderInventory();
 
     document.addEventListener('keydown', keyPress);
     app.$on('invChange', function() {
-        console.log('Inv change');
+        renderInventory();
     });
 }
 

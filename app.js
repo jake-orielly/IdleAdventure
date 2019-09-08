@@ -82,7 +82,7 @@ var app = new Vue({
                     app.giveXP(this.xpVal);
                     if (this.loot)
                         for (let i of this.loot)
-                            addItem('player',items[i.name](),i.amount);
+                            addItem(app.player.inventory,items[i.name](),i.amount);
                 }
             return creature;
         },
@@ -110,9 +110,9 @@ var app = new Vue({
             }
             player.equip = function(item) {
                 if (this.equipment[item.slot])
-                    addItem('player',this.equipment[item.slot],1);
+                    addItem(this.inventory,this.equipment[item.slot],1);
                 this.equipment[item.slot] = item;
-                removeItem('player',item,1);
+                removeItem(this.inventory,item,1);
             }
 
             this.player = player;
