@@ -1,16 +1,24 @@
 var uid = 1;
 var allMonsters = {
     boar: function() {
-        let boar = newCreature("boar",1,1,2.5,0,0,6);
-        boar.xpVal = 8;
-        return boar;
+        return newMonster('boar',1,1,2.5,0,0,6,8,[]);
     },
     goblin: function() {
-        let goblin = newCreature('goblin',2,2,4,0,0,8);
-        goblin.xpVal = 13;
-        goblin.loot = [{name:'copper_coin',amount:[1,3]}];
-        return goblin;
+        return newMonster('goblin',2,2,4,0,0,8,13,[{name:'copper_coin',amount:[1,3]}]);
     },
+    bandit: function() {
+        return newMonster('bandit',3,5,5,0,0,10,30,[{name:'copper_coin',amount:[6,12]}]);
+    },
+    orc: function() {
+        return newMonster('orc',6,3,7,0,0,13,72,[{name:'copper_coin',amount:[16,28]}]);
+    },
+}
+
+function newMonster(name,str,agi,con,int,wis,ac,xp,loot) {
+    let monster = newCreature(name,str,agi,con,int,wis,ac);
+    monster.xpVal = xp;
+    monster.loot = loot;
+    return monster;
 }
 
 function newCreature(name,str,agi,con,int,wis,ac) {
@@ -52,7 +60,8 @@ function newCreature(name,str,agi,con,int,wis,ac) {
         else
             this.hp -= amount;
         this.currHit = -1 * amount;
-        app.$emit('damage',-1*amount,this.uid);
+        if (app.currLocation == 'Dungeon')
+            app.$emit('damage',-1*amount,this.uid);
     }
     creature.heal = function(amount){
         creature.takeDamage(amount * -1);

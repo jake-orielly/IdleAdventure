@@ -87,7 +87,8 @@ var app = new Vue({
                 defender.takeDamage(damage);
             else {
                 defender.currHitAddon = "Miss";
-                app.$emit('damage','Miss',defender.uid);
+                if (app.currLocation == 'Dungeon')
+                    app.$emit('damage','Miss',defender.uid);
             }
         },
         castSpell: function(caster,target,givenSpell) {
@@ -132,11 +133,12 @@ var app = new Vue({
                 {'items':['copper_dagger']}, // lvl 7
                 {'stat':'wis'}, // lvl 8
                 {'items':['copper_sword','copper_axe','copper_mace']}, // lvl 9
-                {'spell':'ice_blast'}, // lvl 10
-                {'items':['copper_breastplate','copper_greaves','copper_helmet','copper_gauntlets']}, // lvl 11
-                {'items':['iron_dagger']}, // lvl 12
-                {'items':['iron_sword','iron_axe','iron_mace']}, // lvl 13
-                {'items':['iron_breastplate','iron_greaves','iron_helmet','iron_gauntlets']}, // lvl 14
+                {'monster':'bandit'}, // lvl 10
+                {'spell':'ice_blast'}, // lvl 11
+                {'items':['copper_breastplate','copper_greaves','copper_helmet','copper_gauntlets']}, // lvl 12
+                {'items':['iron_dagger']}, // lvl 13
+                {'items':['iron_sword','iron_axe','iron_mace']}, // lvl 14
+                {'items':['iron_breastplate','iron_greaves','iron_helmet','iron_gauntlets']}, // lvl 15
             ];
             let currMilestone = milestones[level];
             if (currMilestone['stat'])
@@ -162,7 +164,7 @@ var app = new Vue({
         },
         enemySelect() {
             if (document.getElementById('monsterSelector').value != 'Rest')
-                app.currEnemy = app.monsters[document.getElementById('monsterSelector').value]();
+                app.currEnemy = app.allMonsters[document.getElementById('monsterSelector').value]();
         },
         simulate: function(monster,trials){
             let results = [];
@@ -245,7 +247,7 @@ var app = new Vue({
                             app.player.rest();
                         }
                         else
-                            app.currEnemy = app.monsters[document.getElementById('monsterSelector').value]();
+                            app.currEnemy = app.allMonsters[document.getElementById('monsterSelector').value]();
                         app.monsterDeathTick = 0;
                         app.$forceUpdate();
                     }
