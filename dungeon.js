@@ -1,25 +1,28 @@
 let app = window.parent.app;
 
-let rows = 10;
-let cols = 10;
+let rows = 11;
+let cols = 11;
 
 let cardinalDirs = [[-1,0],[0,1],[1,0],[0,-1]];
 
-let playerToken = {x:1, y:3, img: 'images/player.png',entity:app.player};
+let playerToken = {x:24, y:58, img: 'images/player.png',entity:app.player};
 let playerTurn = true;
 let playerSteps = 2;
+let xVisMod,yVisMod, sightRange;
 let enemies = [
-  {x:3,y:4,img:'images/enemy.png',entity:app.allMonsters['goblin']()},
-  {x:5,y:4,img:'images/enemy.png',entity:app.allMonsters['goblin']()}
+  {x:5,y:51,img:'images/enemy.png',entity:app.allMonsters['goblin']()},
+  {x:5,y:52,img:'images/enemy.png',entity:app.allMonsters['goblin']()}
 ];
+let currEnemies = [];
 
+let floorTileImages = ['images/empty.png','images/floor.png']
 let chestImage = 'images/chest.png';
 let chestOpenImage = 'images/chestOpen.png';
 
 let hideFloating = {};
 
 let scenery = [
-    {x:1,y:5,img:chestImage, inventory:
+    {x:8,y:50,img:chestImage, inventory:
         {copper_coin:[35,50]}
     }
 ];
@@ -44,7 +47,7 @@ function renderTile(x,y,addon,highlightColor) {
         }
     }
     if (highlightColor)
-        tileHtml += '<div class="highlight" style="background-color:' + highlightColor + '"></div>'
+        tileHtml += '<div class="highlight" style="background-color:' + highlightColor + '"></div>';
     document.getElementById(y + ':' + x).innerHTML = tileHtml;
 }
 
@@ -53,17 +56,25 @@ function movePlayer (x,y) {
     let newY = playerToken.y + y;
     if (playerTurn && onBoard(newX,newY) && !collision(newX,newY,playerToken)) {
         playerSteps--;
+        if (!(newX + sightRange >= dungeon1Map[playerToken.y].length) && !(newX - sightRange < 0) && newX - xVisMod != sightRange)
+            xVisMod += x;
+        if (!(newY + sightRange >= dungeon1Map.length) && !(newY - sightRange < 0) && newY - yVisMod != sightRange)
+            yVisMod += y;
+
+        renderFloorTiles();
         renderTile(playerToken.x,playerToken.y);
         playerToken.x += x;
         playerToken.y += y;
         renderTile(playerToken.x,playerToken.y,playerToken);
         document.getElementById("player-steps").innerHTML = playerSteps;
+        currEnemies = enemies.filter(e => e.entity.isAlive && onScreen(e));
         renderEnemies();
+        renderScenery();
         highlights = {};
         if (playerSteps == 0) {
             playerTurn = false;
             renderEnemies();
-            setTimeout(enemyTurn,250);
+            enemyTurn();
         }
     }
 }
@@ -71,25 +82,29 @@ function movePlayer (x,y) {
 function enemyTurn() {
     let path,currStep,currEnemy,killed;
     let currEnemyIndex = 0;
-    let waitTime = 1;
-    killed = enemies.filter(e => !e.entity.isAlive);
+    let waitTime = 250;
+    killed = currEnemies.filter(e => !e.entity.isAlive);
     for (let i of killed)
         renderTile(i.x,i.y);
-    enemies = enemies.filter(e => e.entity.isAlive);
+    if (!currEnemies.length) {
+        playerSteps = 2;
+        playerTurn = true;
+        return;
+    }
     if (killed)
-        waitTime = 500;
+        waitTime += 500;
     setTimeout(()=>{
         renderEnemies();
         enemyMove();
     },waitTime)
 
     function enemyMove() {
-        if (currEnemyIndex == enemies.length) {
+        if (currEnemyIndex == currEnemies.length) {
             playerSteps = 2;
             playerTurn = true;
             return;
         }
-        currEnemy = enemies[currEnemyIndex];
+        currEnemy = currEnemies[currEnemyIndex];
         currStep = 0;
         path = pathFind(currEnemy,playerToken);
         enemyStep();
@@ -115,13 +130,15 @@ function enemyTurn() {
 }
 
 function renderEnemies() {
-    for (let i of enemies)
-        renderTile(i.x,i.y,i);
+    for (let i of currEnemies)
+        if (onScreen(i))
+            renderTile(i.x,i.y,i);
 }
 
 function renderScenery() {
     for (let i of scenery)
-        renderTile(i.x,i.y,i);
+        if (onScreen(i))
+            renderTile(i.x,i.y,i);
 }
 
 function updateHP() {
@@ -150,19 +167,29 @@ function renderInventory() {
 }
 
 function onBoard(x,y) {
+    x -= xVisMod;
+    y -= yVisMod;
     return (x >= 0 && x < rows && y >= 0 && y < cols)
+}
+
+function onScreen(token) {
+    let x = token.x;
+    let y = token.y;
+    return (x >= xVisMod && x < xVisMod + rows && y >= yVisMod && y < yVisMod + cols);
 }
 
 function collision(x,y,token) {
     let curr;
+    if (dungeon1Map[y][x] == 0)
+        return true;
     if (token != playerToken) {
         curr = playerToken;
         if (curr.x == x && curr.y == y)
             return true;
     }
-    for (let i = 0; i < enemies.length; i++)
-        if (enemies[i] != token) {
-            curr = enemies[i];
+    for (let i = 0; i < currEnemies.length; i++)
+        if (currEnemies[i] != token) {
+            curr = currEnemies[i];
             if (curr.x == x && curr.y == y)
                 return true;
         }
@@ -193,8 +220,22 @@ function keyPress() {
     }
 }
 function getTile(x,y) {
-    let floor = '<img src=images/floor.png>';
+    let floor = '<img id="img-' + y + ':' + x + '" src="' + floorTileImages[dungeon1Map[y][x]] + '">';
     return floor;
+}
+
+function renderFloorTiles() {
+    table = '';
+    for (var i = yVisMod; i < yVisMod + cols; i++) {
+        row = '<tr>';
+        for (var j = xVisMod; j < xVisMod + rows; j++) {
+            cell = '<td onclick="takeAction(' + i + ',' + j + ')" id="' + i + ':' + j + '">' + getTile(j,i) + '</td>'
+            row += cell;
+        }
+        row += '</tr>';
+        table += row;
+    }
+    document.getElementById('board').innerHTML = table;
 }
 
 function buildFloatingNumTable() {
@@ -209,23 +250,27 @@ function buildFloatingNumTable() {
 }
 
 function pathFind(start,end) {
-    let valGrid = [];
+    let valGrid = {};
     let toCheck = [];
     let curr, newX, newY, currX, currY, minPath;
     let result = [];
     let minVal = 10000;
-
-    for (let i = 0; i < cols; i++) {
-        valGrid[i] = [];
-        for (let j = 0; j < rows; j++)
-            valGrid[i][j] = 10000;
+    
+    // todo if wall (dungeon1Map[y][x] == 0), then valGrid[i][j] = -1
+    for (let i = yVisMod; i < yVisMod + cols; i++) {
+        valGrid[i] = {};
+        for (let j = xVisMod; j < xVisMod + rows; j++) {
+            if (dungeon1Map[i][j] == 0)
+                valGrid[i][j] = -1;
+            else 
+                valGrid[i][j] = 10000;
+        }
     }
     for (let i of scenery)
         valGrid[i.y][i.x] = -1;
-    for (let i of enemies)
+    for (let i of currEnemies)
         valGrid[i.y][i.x] = -1;
     toCheck.push({x:end.x,y:end.y,val:0})
-    
     while (true) {
         curr = toCheck.shift();
         if (!curr)
@@ -246,7 +291,7 @@ function pathFind(start,end) {
         for (let i of cardinalDirs) {
             newX = currX + i[1];
             newY = currY + i[0];
-            if (onBoard(newY,newX) && valGrid[newY][newX] >= 0 && (valGrid[newY][newX] < minVal || 
+            if (onBoard(newX,newY) && valGrid[newY][newX] >= 0 && (valGrid[newY][newX] < minVal || 
             // If there are two options with equal length path to target pick the one that minimizes linear distance
             (valGrid[newY][newX] == minVal && (distance({x:newX,y:newY},{x:end.x,y:end.y}) < distance({x:currX,y:currY},{x:end.x,y:end.y}))))) {
                 minVal = valGrid[newY][newX];
@@ -279,7 +324,7 @@ function chooseAction(action) {
         else
             if (app.spells[action].cost <= app.player.mana)
                 action = app.spells[action];
-        for (let i of enemies)
+        for (let i of currEnemies)
             if (inRange(playerToken,i,action.range)) {
                 renderTile(i.x,i.y,i,highlightEnemyColor);
                 highlights[i.x + ':' + i.y] = true;
@@ -289,22 +334,25 @@ function chooseAction(action) {
 
 function floatingNumberTrigger(damage,uid){
     let target;
+    let numX, numY;
     if (uid == playerToken.entity.uid)
         target = playerToken;
     else
-        target = enemies.filter(e => e.entity.uid == uid)[0];
-    $('#floating-num-' + target.x + '-' + target.y).html(damage);
-    $('#floating-num-' + target.x + '-' + target.y).removeClass('hidden');
+        target = currEnemies.filter(e => e.entity.uid == uid)[0];
+    numX = target.x - xVisMod;
+    numY = target.y - yVisMod;
+    $('#floating-num-' + numX + '-' + numY).html(damage);
+    $('#floating-num-' + numX + '-' + numY).removeClass('hidden');
     // If already has class, remove and reapply to replay animation
-    if ($('#floating-num-' + target.x + '-' + target.y).hasClass('floating-num-end'))
-        $('#floating-num-' + target.x + '-' + target.y).removeClass('floating-num-end');
-    $('#floating-num-' + target.x + '-' + target.y).addClass('floating-num-end');
+    if ($('#floating-num-' + numX + '-' + numY).hasClass('floating-num-end'))
+        $('#floating-num-' + numX + '-' + numY).removeClass('floating-num-end');
+    $('#floating-num-' + numX + '-' + numY).addClass('floating-num-end');
     if (damage != 'Miss')
-        $('#floating-num-' + target.x + '-' + target.y).addClass('hp-color');
-    hideFloating[target.x+'-'+target.y] = setTimeout(()=> {
-        $('#floating-num-' + target.x + '-' + target.y).removeClass('floating-num-end');
-        $('#floating-num-' + target.x + '-' + target.y).addClass('hidden');
-        $('#floating-num-' + target.x + '-' + target.y).removeClass('hp-color');
+        $('#floating-num-' + numX + '-' + numY).addClass('hp-color');
+    hideFloating[numX+'-'+numY] = setTimeout(()=> {
+        $('#floating-num-' + numX + '-' + numY).removeClass('floating-num-end');
+        $('#floating-num-' + numX + '-' + numY).addClass('hidden');
+        $('#floating-num-' + numX + '-' + numY).removeClass('hp-color');
     },750);
 }
 
@@ -317,7 +365,7 @@ function inRange(obj1,obj2,range) {
 function takeAction(y,x) {
     let target;
     if(highlights[x + ':' + y]) {
-        target = enemies.filter(e => e.x == x && e.y == y)[0].entity;
+        target = currEnemies.filter(e => e.x == x && e.y == y)[0].entity;
         if (selectedAction == 'attack')
             app.attack(playerToken.entity, target);
         else {
@@ -328,7 +376,7 @@ function takeAction(y,x) {
         document.getElementById('xp-inner').style.height = app.player.xp/app.xpToLevel[app.player.level+1]*100 + '%';
         highlights = {};
         renderEnemies();
-        setTimeout(enemyTurn,250);
+        enemyTurn();
     }
 }
 
@@ -336,17 +384,11 @@ function startDungeon(){
     let table,row,cell,buttons;
     let playerActions = [];
     
-    table = '';
-    for (var i = 0; i < cols; i++) {
-        row = '<tr>';
-        for (var j = 0; j < rows; j++) {
-            cell = '<td onclick="takeAction(' + i + ',' + j + ')" id="' + i + ':' + j + '">' + getTile(j,i) + '</td>'
-            row += cell;
-        }
-        row += '</tr>';
-        table += row;
-    }
-    document.getElementById('board').innerHTML = table;
+    sightRange = parseInt(cols/2);
+    xVisMod = playerToken.x - sightRange;
+    yVisMod = playerToken.y - sightRange;
+
+    renderFloorTiles();
 
     buttons = '';
     playerActions.push('attack');

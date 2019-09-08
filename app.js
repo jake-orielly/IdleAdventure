@@ -4,7 +4,7 @@ var app = new Vue({
         playerStats: [],
         monsters:{},
         locations:['Wilderness','Dungeon'],
-        currLocation: 'Wilderness',
+        currLocation: 'Dungeon',
         statInfo: {
             'str':'Strength: determines how hard you hit enemies.',
             'agi':'Agility: determines your chance of hitting an enemy.',
