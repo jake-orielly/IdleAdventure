@@ -39,7 +39,7 @@ var items = {
         return armor('copper_greaves','',60,'legs',3);
     },
     copper_helmet: function() {
-        return armor('copper_helmet','s',45,'chest',2);
+        return armor('copper_helmet','s',45,'head',2);
     },
     copper_gauntlets: function() {
         return armor('copper_gauntlets','',28,'hands',1);
@@ -51,7 +51,7 @@ var items = {
         return armor('iron_greaves','',300,'legs',6);
     },
     iron_helmet: function() {
-        return armor('iron_helmet','s',230,'chest',4);
+        return armor('iron_helmet','s',230,'head',4);
     },
     iron_gauntlets: function() {
         return armor('iron_gauntlets','',120,'hands',2);

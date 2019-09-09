@@ -28,6 +28,9 @@ let scenery = [
     {x:7,y:49,img:chestImage, inventory:
         {copper_coin:[35,50]}
     },
+    {x:36,y:17,img:chestImage, inventory:
+        {iron_sword:1}
+    },
     {x:24,y:49,img:altarImage},
     {x:25,y:49,img:columnImage},
     {x:23,y:49,img:columnImage},
@@ -474,6 +477,9 @@ function startDungeon(){
         //Statue Room
         {x:39,y:37,img:'images/orc.png',entity:app.allMonsters['orc']()},
         {x:39,y:38,img:'images/goblin.png',entity:app.allMonsters['goblin']()},
+
+        //Boss
+        {x:36,y:18,img:'images/drake.png', entity:app.allMonsters['drake']()}
     ];
 
     renderTile(playerToken.x,playerToken.y,playerToken);

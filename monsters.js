@@ -12,6 +12,9 @@ var allMonsters = {
     orc: function() {
         return newMonster('orc',6,3,7,0,0,13,72,[{name:'copper_coin',amount:[16,28]}]);
     },
+    drake: function() {
+        return newMonster('drake',7,9,12,0,0,15,600,[]);
+    },
 }
 
 function newMonster(name,str,agi,con,int,wis,ac,xp,loot) {

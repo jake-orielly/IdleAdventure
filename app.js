@@ -85,7 +85,9 @@ var app = new Vue({
             let player = this.newCreature("player",this.startingStr,2,this.startingCon,4,5,this.startingAc);
             player.xp = 0;
             player.level = 1;
-            player.stats = this.startingStats;
+            player.stats = [];
+            for (let i of this.startingStats)
+                player.stats.push(i);
             player.points = this.startingPoints;
             player.spells = this.startingSpells;
             player.inventory = this.startingInventory;
@@ -93,7 +95,7 @@ var app = new Vue({
             player.uid = 0;
             player.die = function() {
                 app.currEnemy = 0;
-                if (app.currLocation == 'Wilderness' && !app.player.inAfterlife)
+                if (app.currLocation == 'Wilderness' && !app.player.inAfterlife &&  document.getElementById('monsterSelector'))
                     document.getElementById('monsterSelector').value = "rest";
                 else {
                     setTimeout(()=>{
@@ -188,7 +190,9 @@ var app = new Vue({
         },
         milestones(level) {
             let currMilestone = milestonesList[level];
-            if (currMilestone['stat'] && app.startingStats == [])
+            if (!currMilestone)
+                return;
+            if (currMilestone['stat'] && app.startingStats.length == 0)
                 this.player.stats.push(currMilestone['stat']);
             if (currMilestone['monster'])
                 this.monsters[currMilestone['monster']] = this.allMonsters[currMilestone['monster']];
