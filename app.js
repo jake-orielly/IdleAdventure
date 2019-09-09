@@ -1,9 +1,8 @@
 var app = new Vue({ 
     el: '#app',
     data: {
-        playerStats: [],
         monsters:{},
-        locations:['Wilderness','Dungeon'],
+        locations:['Wilderness'],
         currLocation: 'Wilderness',
         statInfo: {
             'str':'Strength: determines how hard you hit enemies.',
@@ -15,6 +14,7 @@ var app = new Vue({
         items: items,
         allMonsters: allMonsters,
         spells: spells,
+        milestonesList: milestonesList,
         gameTick: 1,
         gameTickInterval: 20,
         turnInterval: 75,
@@ -22,21 +22,84 @@ var app = new Vue({
         monsterDeathTick: 0,
         monsterSpawnTime: 50,
         newItems: [],
+        // Perk trackers
+        afterlifePoints: 0,
+        startingPoints: 0,
+        startingInventory: {},
+        startingStr: 2,
+        startingCon: 5,
+        startingAc: 12,
+        xpMultiplier: 1,
+        costMultiplier: 1,
+        startingStats: [],
+        startingSpells: [],
         xpToLevel: [0,0],
+        perkList: [
+            {level:0,perks:[
+                {name:'Recovered Memories',text:'+5% xp from all sources',func:()=>{app.xpMultiplier = 1.05},cost:1},
+                {name:'Psychic Regression',text:'+15% xp from all sources',func:()=>{app.xpMultiplier = 1.15},cost:3}
+            ]},
+            {level:0,perks:[
+                {name:'Clever Negotiator', text:'15% off all goods in the shop',func:()=>{app.costMultipler = 0.85},cost:1},
+                {name:'Expert Haggler',text:'35% off all goods in the shop',func:()=>{app.costMultipler = 0.65},cost:3}
+            ]},
+            {level:0,perks:[
+                {name:'Well Provided',text:'Start with 100 copper coins',func:()=>{app.startingInventory = {copper_coin: 100}},cost:1},
+                {name:'Trust Fund',text:'Start with 300 copper coins',func:()=>{app.startingInventory = {copper_coin: 300}},cost:3}
+            ]},
+            {level:0,perks:[
+                {name:'Robust',text:'Start with +1 str and +1 con',func:()=>{app.startingStr += 1; app.startingCon += 1;},cost:1},
+                {name:'Burly',text:'Start with +3 str and +2 con',func:()=>{app.startingStr += 2; app.startingCon += 1;},cost:3}
+            ]},
+            {level:0,perks:[
+                {name:'Thick Skin',text:'Start with +2 natural armor',func:()=>{app.startingAc += 2;},cost:1},
+                {name:'Formidable',text:'Start with +5 natural armor',func:()=>{app.startingAc += 3;},cost:3}
+            ]},
+            {level:0,perks:[
+                {name:'Naturally Adept',text:'Unlock magic at level 4',func:()=>{app.milestonesList[4].spell = 'fire_blast'; delete app.milestonesList[6]['spell'];},cost:1},
+                {name:'Braniac',text:'Unlock magic at level 1',func:()=>{app.startingSpells = ['fire_blast']; delete app.milestonesList[4]['spell'];},cost:3}
+            ]},
+            {level:0,perks:[
+                {name:'Time Dilation',text:'Time moves 10% faster during training',func:()=>{app.gameTickInterval = 18},cost:1},
+                {name:'Chronomancer',text:'Time moves 25% faster during training',func:()=>{app.gameTickInterval = 15},cost:3}
+            ]},
+            {level:0,perks:[
+                {name:'Flexibility',text:'Can put points into any stat at from level one',func:()=>{app.startingStats = ['str','agi','con','int','wis']},cost:1}
+            ]},
+            {level:0,perks:[
+                {name:'Statistically significant',text:'Start with 1 stat point to spend',func:()=>{app.startingPoints = 1},cost:1},
+                {name:'Outlier',text:'Start with 3 stat points to spend',func:()=>{app.startingPoints = 3},cost:3}
+            ]}
+        ]
     },
     methods: {
+        buyPerk: function(perk) {
+            let currPerk = perk.perks[perk.level];
+            this.afterlifePoints -= currPerk.cost;
+            perk.level++;
+            currPerk.func();
+        },
         playerInit: function() {
-            let player = this.newCreature("player",2,2,5,4,5,12);
+            let player = this.newCreature("player",this.startingStr,2,this.startingCon,4,5,this.startingAc);
             player.xp = 0;
             player.level = 1;
-            player.points = 0;
-            player.spells = [];
-            player.inventory = {};
+            player.stats = this.startingStats;
+            player.points = this.startingPoints;
+            player.spells = this.startingSpells;
+            player.inventory = this.startingInventory;
             player.equipment = {};
             player.uid = 0;
             player.die = function() {
                 app.currEnemy = 0;
-                document.getElementById('monsterSelector').value = "rest";
+                if (app.currLocation == 'Wilderness' && !app.player.inAfterlife)
+                    document.getElementById('monsterSelector').value = "rest";
+                else {
+                    setTimeout(()=>{
+                        app.currLocation = 'Wilderness';
+                        app.player.inAfterlife = true;
+                        app.afterlifePoints += app.player.level - 1;
+                    },300);
+                }
             }
             player.rest = function() {
                 let amount = this.con/30;
@@ -110,7 +173,7 @@ var app = new Vue({
             this.currEnemy.currHitAddon = undefined;
         },
         giveXP(amount) {
-            this.player.xp += amount;
+            this.player.xp += amount * this.xpMultiplier;
 
             // Level up
             if (this.player.xp >= this.xpToLevel[this.player.level+1]) {
@@ -122,27 +185,9 @@ var app = new Vue({
             }
         },
         milestones(level) {
-            let milestones = [
-                {},
-                {},
-                {'stat':'str'}, // lvl 2
-                {'stat':'agi'}, // lvl 3
-                {'monster':'goblin','location':'Shop','items':['bread']}, // lvl 4
-                {'stat':'con'}, // lvl 5
-                {'stat':'int','spell':'fire_blast'}, // lvl 6
-                {'items':['copper_dagger']}, // lvl 7
-                {'stat':'wis'}, // lvl 8
-                {'items':['copper_sword','copper_axe','copper_mace']}, // lvl 9
-                {'monster':'bandit'}, // lvl 10
-                {'spell':'ice_blast'}, // lvl 11
-                {'items':['copper_breastplate','copper_greaves','copper_helmet','copper_gauntlets']}, // lvl 12
-                {'items':['iron_dagger']}, // lvl 13
-                {'items':['iron_sword','iron_axe','iron_mace']}, // lvl 14
-                {'items':['iron_breastplate','iron_greaves','iron_helmet','iron_gauntlets']}, // lvl 15
-            ];
-            let currMilestone = milestones[level];
-            if (currMilestone['stat'])
-                this.playerStats.push(currMilestone['stat']);
+            let currMilestone = milestonesList[level];
+            if (currMilestone['stat'] && app.startingStats == [])
+                this.player.stats.push(currMilestone['stat']);
             if (currMilestone['monster'])
                 this.monsters[currMilestone['monster']] = this.allMonsters[currMilestone['monster']];
             if (currMilestone['spell'])
@@ -172,7 +217,7 @@ var app = new Vue({
             for (let i = 0; i < trials; i++) {
                 this.player.hp = this.player.maxHP();
                 this.player.isAlive = true;
-                this.currEnemy = this.monsters[monster]();
+                this.currEnemy = this.allMonsters[monster]();
                 curr = 0;
                 while(this.player.isAlive)
                     if (this.player.isAlive && this.currEnemy.isAlive) {
@@ -182,7 +227,7 @@ var app = new Vue({
                     }
                     else if (!this.currEnemy.isAlive) {
                         curr++;
-                        this.currEnemy = this.monsters[monster]();
+                        this.currEnemy = this.allMonsters[monster]();
                     }
                 if (results[curr] == undefined)
                     for (let j = 0; j <= curr; j++)
@@ -200,6 +245,8 @@ var app = new Vue({
         // UI Functions
         statIncrease: function(stat) {
             this.player[stat]++;
+            if (stat == 'con')
+                this.player.hp += 2;
             this.player.points--;
             this.$forceUpdate();
         },
@@ -214,15 +261,20 @@ var app = new Vue({
         prettyPrint: prettyPrint,
         ping: function(string="hello") {
             console.log(string);
+        },
+        newLife: function() {
+            this.playerInit();
+            this.currEnemy = 0;
+            this.monsters = {boar: this.boar};
+            this.locations = ['Wilderness'];
+            this.newItems = [];
+            this.player.inAfterlife = false;
         }
     },
     created: function() {
         for (let i = 2; i < 1000; i++)
             this.xpToLevel[i] = this.xpFunc(i);
-        this.playerInit();
-        this.currEnemy = 0;
-        this.monsters['boar'] = this.boar;
-        this.milestones(6)
+        this.newLife();
         this.gameLoop = setInterval(function(){
             if (app.currLocation == 'Wilderness') {
                 if (app.player.isAlive && app.currEnemy && app.currEnemy.isAlive) {

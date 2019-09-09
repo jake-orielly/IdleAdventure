@@ -25,7 +25,7 @@ function canAfford(inv,item,amount) {
 
 // Basic Utilities 
 function prettyPrint(given) {
-    if (!given)
+    if (given == undefined)
         return;
     if (isNaN(given)) {
         let arr = given.split('_')

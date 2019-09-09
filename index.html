@@ -6,11 +6,12 @@
         <script src="items.js"></script>
         <script src="monsters.js"></script>
         <script src="spells.js"></script>
+        <script src="milestonesList.js"></script>
         <script src="shop.vue"></script>
     </head>
     <body>
         <div id="app">
-            <div v-if="currLocation != 'Dungeon'" id="locations-container">
+            <div v-if="currLocation != 'Dungeon' && !player.inAfterlife" id="locations-container">
                 <ul id="locations-menu">
                     <li v-for="loc in locations" @click="changeLocation(loc)" class="locations-menu-item clickable">
                         {{loc}}
@@ -19,100 +20,114 @@
             </div>
             <div style="position:relative">
                 <div v-if="currLocation == 'Wilderness'">
-                    <div>
-                        {{prettyPrint(player.name) + ": Level " + player.level}}
-                        <div class="progress-bar hp-empty">
-                            <div class="progress-bar-inner hp-full"
-                            :style="{width: player.hp/player.maxHP()*100 + '%'}">
-                            </div>
-                            <div class="progress-bar-text">
-                                {{prettyPrint(player.hp) + " / " + player.maxHP()}}
-                                <div class="floating-num" 
-                                :class="[ player.currHit != undefined ? 'floating-num-end' : 'hidden', player.currHit < 0 ? 'hp-damage' : 'hp-heal']">
-                                    {{prettyPrint(player.currHit)}}
+                    <div v-if="!player.inAfterlife">
+                        <div>
+                            {{prettyPrint(player.name) + ": Level " + player.level}}
+                            <div class="progress-bar hp-empty">
+                                <div class="progress-bar-inner hp-full"
+                                :style="{width: player.hp/player.maxHP()*100 + '%'}">
                                 </div>
-                                <div class="floating-num" 
-                                :class="[ player.currHitAddon != undefined ? 'floating-num-end' : 'hidden']">
-                                    {{player.currHitAddon}}
+                                <div class="progress-bar-text">
+                                    {{prettyPrint(player.hp) + " / " + player.maxHP()}}
+                                    <div class="floating-num" 
+                                    :class="[ player.currHit != undefined ? 'floating-num-end' : 'hidden', player.currHit < 0 ? 'hp-damage' : 'hp-heal']">
+                                        {{prettyPrint(player.currHit)}}
+                                    </div>
+                                    <div class="floating-num" 
+                                    :class="[ player.currHitAddon != undefined ? 'floating-num-end' : 'hidden']">
+                                        {{player.currHitAddon}}
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="player.spells.length != 0" class="progress-bar mana-empty">
+                                <div class="progress-bar-inner mana-full"
+                                :style="{width: player.mana/player.maxMana()*100 + '%'}">
+                                </div>
+                                <div class="progress-bar-text">
+                                    {{prettyPrint(player.mana) + "/" + player.maxMana()}}
+                                </div>
+                            </div>
+                            <div class="progress-bar xp-empty">
+                                <div class="progress-bar-inner xp-full"
+                                :style="{width: player.xp/xpToLevel[player.level+1]*100 + '%'}">
+                                </div>
+                                <div class="progress-bar-text">
+                                        {{prettyPrint(player.xp) + "/" + xpToLevel[player.level+1]}}
                                 </div>
                             </div>
                         </div>
-                        <div v-if="playerStats.indexOf('int') != -1" class="progress-bar mana-empty">
-                            <div class="progress-bar-inner mana-full"
-                            :style="{width: player.mana/player.maxMana()*100 + '%'}">
-                            </div>
-                            <div class="progress-bar-text">
-                                {{prettyPrint(player.mana) + "/" + player.maxMana()}}
+                        <div v-if="player.isAlive">
+                            <span>Next:</span> 
+                            <select id="monsterSelector" @change="enemySelect">
+                                <option value="Rest">Rest</option>
+                                <option v-for="monster in Object.keys(monsters)" :value="monster">{{prettyPrint(monster)}}</option>
+                            </select>
+                            <div class="progress-bar hp-empty" v-if="currEnemy">
+                                <div class="progress-bar-inner hp-full"
+                                :style="{width: currEnemy.hp/currEnemy.maxHP()*100 + '%'}">
+                                </div>
+                                <div class="progress-bar-text">
+                                    {{currEnemy.hp + " / " + currEnemy.maxHP()}}
+                                    <div class="floating-num" 
+                                    :class="[ currEnemy.currHit != undefined ? 'floating-num-end' : 'hidden', currEnemy.currHit < 0 ? 'hp-damage' : 'hp-heal']">
+                                        {{prettyPrint(currEnemy.currHit)}}
+                                    </div>
+                                    <div class="floating-num" 
+                                    :class="[ currEnemy.currHitAddon != undefined ? 'floating-num-end' : 'hidden']">
+                                        {{currEnemy.currHitAddon}}
+                                    </div>
+                                </div>
+                                <div v-if="currEnemy.isStunned && currEnemy.isAlive">
+                                    Stunned
+                                </div>
                             </div>
                         </div>
-                        <div class="progress-bar xp-empty">
-                            <div class="progress-bar-inner xp-full"
-                            :style="{width: player.xp/xpToLevel[player.level+1]*100 + '%'}">
-                            </div>
-                            <div class="progress-bar-text">
-                                    {{player.xp + "/" + xpToLevel[player.level+1]}}
-                            </div>
+                        <div>
+                            <button v-for="spell in player.spells" class="spell-btn" @click="castSpell(player,currEnemy,spell)">{{prettyPrint(spell)}}</button>
+                        </div>
+                        <div>
+                            <ul>
+                                <li v-for="item in Object.keys(player.inventory).filter(key => player.inventory[key] > 0)">
+                                    {{prettyPrint((player.inventory[item] > 1 ? items[item]().plural : items[item]().name)) + 
+                                    ': ' + player.inventory[item]}}
+                                    <span v-if="items[item]().useName" @click="items[item]().use(player)" class="inventory-item-use clickable">
+                                        {{prettyPrint(items[item]().useName)}}
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div >
+                            <p v-if="player.points">Ability Points: {{player.points}}</p>
+                            <table>
+                                <tr v-for="i in player.stats">
+                                    <td>
+                                        <div class="tooltip-container">
+                                            {{prettyPrint(i)}}
+                                            <span class="tooltip">{{statInfo[i]}}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {{player[i]}}
+                                    </td>
+                                    <td v-if="player.points" class="clickable" @click="statIncrease(i)">
+                                        &uarr;
+                                    </td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
+                </div>
+                <div v-if="player.inAfterlife">
+                    Oh dear, you are dead... 
                     <div>
-                        <button v-for="spell in player.spells" class="spell-btn" @click="castSpell(player,currEnemy,spell)">{{prettyPrint(spell)}}</button>
-                    </div>
-                    <div>
+                        <p><span style="text-decoration: underline">Points Availible:</span> {{afterlifePoints}}</p>
                         <ul>
-                            <li v-for="item in Object.keys(player.inventory).filter(key => player.inventory[key] > 0)">
-                                {{prettyPrint((player.inventory[item] > 1 ? items[item]().plural : items[item]().name)) + 
-                                ': ' + player.inventory[item]}}
-                                <span v-if="items[item]().useName" @click="items[item]().use(player)" class="inventory-item-use clickable">
-                                    {{prettyPrint(items[item]().useName)}}
-                                </span>
-                            </li>
+                            <li v-for="perk in perkList.filter(perk => perk.level < perk.perks.length)" @click="buyPerk(perk)" class="clickable">
+                                <span style='font-weight: bold'>{{perk.perks[perk.level].name}}</span>
+                                {{': ' + perk.perks[perk.level].text + ' - ' + perk.perks[perk.level].cost + (perk.perks[perk.level].cost > 1 ? ' points' : ' point')}}</li>
                         </ul>
                     </div>
-                    <div v-if="player.isAlive">
-                        <span>Next:</span> 
-                        <select id="monsterSelector" @change="enemySelect">
-                            <option value="Rest">Rest</option>
-                            <option v-for="monster in Object.keys(monsters)" :value="monster">{{prettyPrint(monster)}}</option>
-                        </select>
-                        <div class="progress-bar hp-empty" v-if="currEnemy">
-                            <div class="progress-bar-inner hp-full"
-                            :style="{width: currEnemy.hp/currEnemy.maxHP()*100 + '%'}">
-                            </div>
-                            <div class="progress-bar-text">
-                                {{currEnemy.hp + " / " + currEnemy.maxHP()}}
-                                <div class="floating-num" 
-                                :class="[ currEnemy.currHit != undefined ? 'floating-num-end' : 'hidden', currEnemy.currHit < 0 ? 'hp-damage' : 'hp-heal']">
-                                    {{prettyPrint(currEnemy.currHit)}}
-                                </div>
-                                <div class="floating-num" 
-                                :class="[ currEnemy.currHitAddon != undefined ? 'floating-num-end' : 'hidden']">
-                                    {{currEnemy.currHitAddon}}
-                                </div>
-                            </div>
-                            <div v-if="currEnemy.isStunned && currEnemy.isAlive">
-                                Stunned
-                            </div>
-                        </div>
-                    </div>
-                    <div >
-                        <p v-if="player.points">Ability Points: {{player.points}}</p>
-                        <table>
-                            <tr v-for="i in playerStats">
-                                <td>
-                                    <div class="tooltip-container">
-                                        {{prettyPrint(i)}}
-                                        <span class="tooltip">{{statInfo[i]}}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    {{player[i]}}
-                                </td>
-                                <td v-if="player.points" class="clickable" @click="statIncrease(i)">
-                                    &uarr;
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
+                    <button @click="newLife" style="margin-top: 1em">Reincarnate</button>
                 </div>
             </div>
             <div v-if="currLocation == 'Shop'">
