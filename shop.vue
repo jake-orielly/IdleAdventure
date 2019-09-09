@@ -12,10 +12,10 @@ Vue.component('shop', {
   },
   methods: {
         buy: function(item) {
-          let amount = parseInt(items[item]().value * this.buyMultiplier * app.costMultipler);
+          let amount = parseInt(items[item]().value * this.buyMultiplier * this.app.costMultiplier);
           if (canAfford(this.app.player.inventory,'copper_coin',amount)) {
-            app.removeItem('player',items['copper_coin'](),amount);
-            app.addItem('player',items[item](),1);
+            removeItem(this.app.player.inventory,items['copper_coin'](),amount);
+            addItem(this.app.player.inventory,items[item](),1);
           }
         },
         addItem: addItem,

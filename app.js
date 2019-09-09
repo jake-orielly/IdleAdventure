@@ -75,9 +75,11 @@ var app = new Vue({
     methods: {
         buyPerk: function(perk) {
             let currPerk = perk.perks[perk.level];
-            this.afterlifePoints -= currPerk.cost;
-            perk.level++;
-            currPerk.func();
+            if (this.afterlifePoints >= currPerk.cost) {
+                this.afterlifePoints -= currPerk.cost;
+                perk.level++;
+                currPerk.func();
+            }
         },
         playerInit: function() {
             let player = this.newCreature("player",this.startingStr,2,this.startingCon,4,5,this.startingAc);
