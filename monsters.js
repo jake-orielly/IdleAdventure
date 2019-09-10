@@ -4,10 +4,10 @@ var allMonsters = {
         return newMonster('boar',1,1,2.5,0,0,6,8,[]);
     },
     goblin: function() {
-        return newMonster('goblin',2,1,7,0,0,8,39,[{name:'copper_coin',amount:[2,4]}]);
+        return newMonster('goblin',2,1,7,0,0,8,39,[{name:'copper_coin',amount:[3,9]}]);
     },
     bandit: function() {
-        return newMonster('bandit',3,5,5,0,0,10,30,[{name:'copper_coin',amount:[6,12]}]);
+        return newMonster('bandit',3,5,9.5,0,0,10,65,[{name:'copper_coin',amount:[15,32]}]);
     },
     orc: function() {
         return newMonster('orc',6,3,7,0,0,13,72,[{name:'copper_coin',amount:[16,28]}]);

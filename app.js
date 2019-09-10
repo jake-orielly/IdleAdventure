@@ -3,7 +3,7 @@ var app = new Vue({
     data: {
         monsters:[],
         locations:['Wilderness'],
-        currLocation: 'Dungeon',
+        currLocation: 'Wilderness',
         statInfo: {
             'str':'Strength: determines how hard you hit enemies.',
             'agi':'Agility: determines how often you hit, and how often you get hit.',
@@ -16,7 +16,7 @@ var app = new Vue({
         spells: spells,
         milestonesList: milestonesList,
         gameTick: 1,
-        gameTickInterval: 10,
+        gameTickInterval: 8,
         //gameTickInterval: 20,
         turnInterval: 75,
         recoveryInterval: 20,
@@ -27,7 +27,7 @@ var app = new Vue({
         afterlifePoints: 0,
         startingPoints: 0,
         startingInventory: {},
-        startingStr: 2000,
+        startingStr: 2,
         startingCon: 5,
         startingAc: 12,
         xpMultiplier: 1,
