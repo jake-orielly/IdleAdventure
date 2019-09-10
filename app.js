@@ -1,9 +1,9 @@
 var app = new Vue({ 
     el: '#app',
     data: {
-        monsters:{},
+        monsters:[],
         locations:['Wilderness'],
-        currLocation: 'Wilderness',
+        currLocation: 'Dungeon',
         statInfo: {
             'str':'Strength: determines how hard you hit enemies.',
             'agi':'Agility: determines how often you hit, and how often you get hit.',
@@ -27,7 +27,7 @@ var app = new Vue({
         afterlifePoints: 0,
         startingPoints: 0,
         startingInventory: {},
-        startingStr: 2,
+        startingStr: 2000,
         startingCon: 5,
         startingAc: 12,
         xpMultiplier: 1,
@@ -196,7 +196,7 @@ var app = new Vue({
             if (currMilestone['stat'] && app.startingStats.length == 0)
                 this.player.stats.push(currMilestone['stat']);
             if (currMilestone['monster'])
-                this.monsters[currMilestone['monster']] = this.allMonsters[currMilestone['monster']];
+                this.monsters.push(currMilestone['monster']);
             if (currMilestone['spell'])
                 this.player.spells.push(currMilestone['spell']);
             if (currMilestone['location'])
@@ -297,7 +297,7 @@ var app = new Vue({
         newLife: function() {
             this.playerInit();
             this.currEnemy = 0;
-            this.monsters = {boar: this.boar};
+            this.monsters.push('boar');
             this.locations = ['Wilderness'];
             this.newItems = [];
             this.player.inAfterlife = false;
@@ -329,10 +329,8 @@ var app = new Vue({
                     if (!app.monsterDeathTick)
                         app.monsterDeathTick = app.gameTick;
                     else if (app.gameTick == app.monsterDeathTick + app.monsterSpawnTime) {
-                        if (document.getElementById('monsterSelector').value == 'Rest') {
+                        if (document.getElementById('monsterSelector').value == 'Rest')
                             app.currEnemy = 0;
-                            app.player.rest();
-                        }
                         else
                             app.currEnemy = app.allMonsters[document.getElementById('monsterSelector').value]();
                         app.monsterDeathTick = 0;
@@ -340,8 +338,9 @@ var app = new Vue({
                     }
                 }
                 if (app.gameTick % app.recoveryInterval == 0) {
-                    if (!app.player.isAlive)
-                        app.player.rest();
+                    if (!app.player.isAlive || document.getElementById('monsterSelector').value == 'Rest')
+                        if (app.player.hp < app.player.maxHP())
+                            app.player.rest();
                     if (app.player.mana < app.player.maxMana())
                         app.player.manaRegen();
                     app.$forceUpdate();

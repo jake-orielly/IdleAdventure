@@ -60,7 +60,7 @@
                             <span>Next:</span> 
                             <select id="monsterSelector" @change="enemySelect">
                                 <option value="Rest">Rest</option>
-                                <option v-for="monster in Object.keys(monsters)" :value="monster">{{prettyPrint(monster)}}</option>
+                                <option v-for="monster in monsters" :value="monster">{{prettyPrint(monster)}}</option>
                             </select>
                             <div class="progress-bar hp-empty" v-if="currEnemy">
                                 <div class="progress-bar-inner hp-full"

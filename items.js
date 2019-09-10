@@ -3,8 +3,8 @@ var items = {
         return {name:'copper_coin',plural:'copper_coins',value:1}
     },
     bread: function() {
-        return {name:'bread',plural:'bread',value:4,useName:'eat',use:function(user){
-            user.heal(3);
+        return {name:'bread',plural:'bread',value:2,useName:'eat',use:function(user){
+            user.heal(8);
             removeItem(app.player.inventory,this,1);
         }}
     },

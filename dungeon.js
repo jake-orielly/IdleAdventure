@@ -104,6 +104,7 @@ function enemyTurn() {
     let currEnemyIndex = 0;
     let waitTime = 250;
     killed = currEnemies.filter(e => !e.entity.isAlive);
+    currEnemies = enemies.filter(e => e.entity.isAlive && onScreen(e));
     for (let i of killed)
         renderTile(i.x,i.y);
     if (!currEnemies.length) {
@@ -391,8 +392,10 @@ function chooseAction(action) {
                 highlights[i.x + ':' + i.y] = highlightEnemyColor;
             }
         for (let i of scenery)
-            if (inRange(playerToken,i,action.range))
+            if (inRange(playerToken,i,action.range)) {
                 renderTile(i.x,i.y,i,highlightRangeColor);
+                highlights[i.x + ':' + i.y] = highlightEnemyColor;
+            }
     }
 }
 
@@ -439,6 +442,8 @@ function takeAction(y,x) {
         playerTurn = false;
         document.getElementById('xp-inner').style.height = app.player.xp/app.xpToLevel[app.player.level+1]*100 + '%';
         highlights = {};
+        renderFloorTiles();
+        renderTile(playerToken.x,playerToken.y,playerToken);
         renderEnemies();
         enemyTurn();
     }
@@ -466,6 +471,9 @@ function startDungeon(){
 
 
     enemies = [
+        //First hallway
+        {x:24,y:52,img:'images/goblin.png',entity:app.allMonsters['goblin']()},
+
         // Treasure Room
         {x:7,y:50,img:'images/goblin.png',entity:app.allMonsters['goblin']()},
         {x:7,y:48,img:'images/goblin.png',entity:app.allMonsters['goblin']()},
@@ -503,5 +511,12 @@ function startDungeon(){
     app.$on('startDungeon', function() {
         startDungeon();
     });
+    app.$on('monsterUnlocked',function(monster){
+        $('#new-monster-alert-text').html('New Monster Unlocked: ' + prettyPrint(monster));
+        $('#new-monster-alert-container').show();
+        setTimeout(()=>{
+            $('#new-monster-alert-container').hide();
+        },12000)
+    })
 }
 startDungeon();

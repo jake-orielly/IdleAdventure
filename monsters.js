@@ -4,7 +4,7 @@ var allMonsters = {
         return newMonster('boar',1,1,2.5,0,0,6,8,[]);
     },
     goblin: function() {
-        return newMonster('goblin',2,1.5,3.5,0,0,8,39,[{name:'copper_coin',amount:[1,3]}]);
+        return newMonster('goblin',2,1,7,0,0,8,39,[{name:'copper_coin',amount:[2,4]}]);
     },
     bandit: function() {
         return newMonster('bandit',3,5,5,0,0,10,30,[{name:'copper_coin',amount:[6,12]}]);
@@ -83,6 +83,10 @@ function newCreature(name,str,agi,con,int,wis,ac) {
 
     if (creature.name != "player")
         creature.die = function() {
+            if (app.monsters.indexOf(this.name) == -1) {
+                app.monsters.push(this.name);
+                app.$emit('monsterUnlocked',this.name);
+            }
             app.giveXP(this.xpVal);
             if (this.loot)
                 for (let i of this.loot)
