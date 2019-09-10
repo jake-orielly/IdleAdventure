@@ -5,7 +5,7 @@ var items = {
     bread: function() {
         return {name:'bread',plural:'bread',value:4,useName:'eat',use:function(user){
             user.heal(3);
-            removeItem('player',this,1);
+            removeItem(app.player.inventory,this,1);
         }}
     },
     copper_dagger: function() {

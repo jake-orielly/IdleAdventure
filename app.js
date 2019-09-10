@@ -6,7 +6,7 @@ var app = new Vue({
         currLocation: 'Wilderness',
         statInfo: {
             'str':'Strength: determines how hard you hit enemies.',
-            'agi':'Agility: determines your chance of hitting an enemy.',
+            'agi':'Agility: determines how often you hit, and how often you get hit.',
             'con':'Constitution: determines how much hp you have and how quickly it recovers',
             'int':'Intellegence: determines how powerful your spells are.',
             'wis': 'Wisdom: determines how quickly your mana regenerates.'
@@ -16,7 +16,8 @@ var app = new Vue({
         spells: spells,
         milestonesList: milestonesList,
         gameTick: 1,
-        gameTickInterval: 20,
+        gameTickInterval: 10,
+        //gameTickInterval: 20,
         turnInterval: 75,
         recoveryInterval: 20,
         monsterDeathTick: 0,
@@ -106,7 +107,7 @@ var app = new Vue({
                 }
             }
             player.rest = function() {
-                let amount = this.con/30;
+                let amount = this.con/15;
                 player.takeDamage(-1 * amount);
             }
             player.manaRegen = function() {
@@ -132,7 +133,7 @@ var app = new Vue({
         attack: function(attacker,defender) {
             let damage = attacker.dmgRoll();
             let toHit = attacker.toHit();
-            let ac = defender.ac;
+            let ac = defender.ac + Math.pow(defender.agi,1.8); // Add agi bonus
             let effects;
             if (attacker.equipment)
                 for (let i in attacker.equipment) {
@@ -217,8 +218,29 @@ var app = new Vue({
             if (document.getElementById('monsterSelector').value != 'Rest')
                 app.currEnemy = app.allMonsters[document.getElementById('monsterSelector').value]();
         },
+        simulateAttack: function(monster,trials) {
+            let average = 0;
+            let results = [];
+            let bigNum = Math.pow(2,16);
+            this.currEnemy = this.allMonsters[monster]();
+            for (let i = 6; i < 22; i += 2) {
+                average = 0;
+                this.currEnemy.ac = i;
+                for (let j = 0; j < trials; j++) {
+                    this.currEnemy.hp = bigNum;
+                    this.attack(this.player, this.currEnemy);
+                    average += bigNum - this.currEnemy.hp;
+                }
+                average /= trials;
+                results.push(average);
+            }
+            this.currEnemy = 0;
+            console.log(results);
+        },
         simulate: function(monster,trials){
             let results = [];
+            let turns = 0;
+            let kills = 0;
             let curr;
             for (let i = 0; i < trials; i++) {
                 this.player.hp = this.player.maxHP();
@@ -227,12 +249,14 @@ var app = new Vue({
                 curr = 0;
                 while(this.player.isAlive)
                     if (this.player.isAlive && this.currEnemy.isAlive) {
-                        this.playerTurn();
+                        this.attack(this.player, this.currEnemy);
+                        turns++;
                         if (this.currEnemy.isAlive)
-                                this.enemyTurn();
+                            this.attack(this.currEnemy, this.player);
                     }
                     else if (!this.currEnemy.isAlive) {
                         curr++;
+                        kills++;
                         this.currEnemy = this.allMonsters[monster]();
                     }
                 if (results[curr] == undefined)
@@ -246,13 +270,15 @@ var app = new Vue({
                 results[i] = i + ": " + ('' + results[i]*100).substr(0,4) + "%"
             }
             console.log(results);
+            console.log(turns/kills);
         },
 
         // UI Functions
         statIncrease: function(stat) {
+            let tempHP = this.player.maxHP();
             this.player[stat]++;
             if (stat == 'con')
-                this.player.hp += 2;
+                this.player.hp += this.player.maxHP() - tempHP;
             this.player.points--;
             this.$forceUpdate();
         },

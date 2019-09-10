@@ -4,7 +4,7 @@ var allMonsters = {
         return newMonster('boar',1,1,2.5,0,0,6,8,[]);
     },
     goblin: function() {
-        return newMonster('goblin',2,2,4,0,0,8,13,[{name:'copper_coin',amount:[1,3]}]);
+        return newMonster('goblin',2,1.5,3.5,0,0,8,39,[{name:'copper_coin',amount:[1,3]}]);
     },
     bandit: function() {
         return newMonster('bandit',3,5,5,0,0,10,30,[{name:'copper_coin',amount:[6,12]}]);
@@ -13,7 +13,7 @@ var allMonsters = {
         return newMonster('orc',6,3,7,0,0,13,72,[{name:'copper_coin',amount:[16,28]}]);
     },
     drake: function() {
-        return newMonster('drake',7,9,12,0,0,15,600,[]);
+        return newMonster('drake',7,9,12,0,0,16,600,[]);
     },
 }
 
@@ -39,12 +39,12 @@ function newCreature(name,str,agi,con,int,wis,ac) {
     creature.movement = 2;
     
     creature.maxHP = function() {
-        return this.con * 2;
+        return parseInt((Math.pow(this.con/2,1.8)) + this.con * Math.pow(this.con,.5));
     }
     creature.hp = creature.maxHP();
 
     creature.maxMana = function() {
-        return this.wis * 3;
+        return parseInt(this.wis*2 + Math.pow(this.wis/3,2));
     }
     creature.mana = creature.maxMana();
 
@@ -70,14 +70,14 @@ function newCreature(name,str,agi,con,int,wis,ac) {
         creature.takeDamage(amount * -1);
     }
     creature.dmgRoll = function() {
-        return parseInt(Math.random() * this.str) + 1;
+        return parseInt(Math.random() * Math.pow(this.str/1.5,1.8) + Math.min(this.str/3,1)) + 1;
     }
     creature.toHit = function() {
         let roll = app.d20();
         if (roll == 20)
             return "crit";
         else {
-            return roll + this.agi;
+            return roll + Math.pow(this.agi,1.8);
         }
     }
 

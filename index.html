@@ -85,17 +85,6 @@
                         <div>
                             <button v-for="spell in player.spells" class="spell-btn" @click="castSpell(player,currEnemy,spell)">{{prettyPrint(spell)}}</button>
                         </div>
-                        <div>
-                            <ul>
-                                <li v-for="item in Object.keys(player.inventory).filter(key => player.inventory[key] > 0)">
-                                    {{prettyPrint((player.inventory[item] > 1 ? items[item]().plural : items[item]().name)) + 
-                                    ': ' + player.inventory[item]}}
-                                    <span v-if="items[item]().useName" @click="items[item]().use(player)" class="inventory-item-use clickable">
-                                        {{prettyPrint(items[item]().useName)}}
-                                    </span>
-                                </li>
-                            </ul>
-                        </div>
                         <div >
                             <p v-if="player.points">Ability Points: {{player.points}}</p>
                             <table>
@@ -114,6 +103,17 @@
                                     </td>
                                 </tr>
                             </table>
+                        </div>
+                        <div>
+                            <ul>
+                                <li v-for="item in Object.keys(player.inventory).filter(key => player.inventory[key] > 0)">
+                                    {{prettyPrint((player.inventory[item] > 1 ? items[item]().plural : items[item]().name)) + 
+                                    ': ' + player.inventory[item]}}
+                                    <span v-if="items[item]().useName" @click="items[item]().use(player)" class="inventory-item-use clickable">
+                                        {{prettyPrint(items[item]().useName)}}
+                                    </span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
