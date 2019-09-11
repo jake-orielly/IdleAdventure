@@ -16,7 +16,7 @@ var app = new Vue({
         spells: spells,
         milestonesList: milestonesList,
         gameTick: 1,
-        gameTickInterval: 8,
+        gameTickInterval: 10,
         //gameTickInterval: 20,
         turnInterval: 75,
         recoveryInterval: 20,
@@ -35,43 +35,7 @@ var app = new Vue({
         startingStats: [],
         startingSpells: [],
         xpToLevel: [0,0],
-        perkList: [
-            {level:0,perks:[
-                {name:'Recovered Memories',text:'+5% xp from all sources',func:()=>{app.xpMultiplier = 1.05},cost:1},
-                {name:'Psychic Regression',text:'+15% xp from all sources',func:()=>{app.xpMultiplier = 1.15},cost:3}
-            ]},
-            {level:0,perks:[
-                {name:'Clever Negotiator', text:'15% off all goods in the shop',func:()=>{app.costMultipler = 0.85},cost:1},
-                {name:'Expert Haggler',text:'35% off all goods in the shop',func:()=>{app.costMultipler = 0.65},cost:3}
-            ]},
-            {level:0,perks:[
-                {name:'Well Provided',text:'Start with 100 copper coins',func:()=>{app.startingInventory = {copper_coin: 100}},cost:1},
-                {name:'Trust Fund',text:'Start with 300 copper coins',func:()=>{app.startingInventory = {copper_coin: 300}},cost:3}
-            ]},
-            {level:0,perks:[
-                {name:'Robust',text:'Start with +1 str and +1 con',func:()=>{app.startingStr += 1; app.startingCon += 1;},cost:1},
-                {name:'Burly',text:'Start with +3 str and +2 con',func:()=>{app.startingStr += 2; app.startingCon += 1;},cost:3}
-            ]},
-            {level:0,perks:[
-                {name:'Thick Skin',text:'Start with +2 natural armor',func:()=>{app.startingAc += 2;},cost:1},
-                {name:'Formidable',text:'Start with +5 natural armor',func:()=>{app.startingAc += 3;},cost:3}
-            ]},
-            {level:0,perks:[
-                {name:'Naturally Adept',text:'Unlock magic at level 4',func:()=>{app.milestonesList[4].spell = 'fire_blast'; delete app.milestonesList[6]['spell'];},cost:1},
-                {name:'Braniac',text:'Unlock magic at level 1',func:()=>{app.startingSpells = ['fire_blast']; delete app.milestonesList[4]['spell'];},cost:3}
-            ]},
-            {level:0,perks:[
-                {name:'Time Dilation',text:'Time moves 10% faster during training',func:()=>{app.gameTickInterval = 18},cost:1},
-                {name:'Chronomancer',text:'Time moves 25% faster during training',func:()=>{app.gameTickInterval = 15},cost:3}
-            ]},
-            {level:0,perks:[
-                {name:'Flexibility',text:'Can put points into any stat at from level one',func:()=>{app.startingStats = ['str','agi','con','int','wis']},cost:1}
-            ]},
-            {level:0,perks:[
-                {name:'Statistically significant',text:'Start with 1 stat point to spend',func:()=>{app.startingPoints = 1},cost:1},
-                {name:'Outlier',text:'Start with 3 stat points to spend',func:()=>{app.startingPoints = 3},cost:3}
-            ]}
-        ]
+        perkList: perkList
     },
     methods: {
         buyPerk: function(perk) {
@@ -84,6 +48,8 @@ var app = new Vue({
         },
         playerInit: function() {
             let player = this.newCreature("player",this.startingStr,2,this.startingCon,4,5,this.startingAc);
+            player.str = 2;
+            player.agi = 2;
             player.xp = 0;
             player.level = 1;
             player.stats = [];
@@ -97,7 +63,7 @@ var app = new Vue({
             player.die = function() {
                 app.currEnemy = 0;
                 if (app.currLocation == 'Wilderness' && !app.player.inAfterlife &&  document.getElementById('monsterSelector'))
-                    document.getElementById('monsterSelector').value = "rest";
+                    document.getElementById('monsterSelector').value = "Rest";
                 else {
                     setTimeout(()=>{
                         app.currLocation = 'Wilderness';
@@ -149,8 +115,10 @@ var app = new Vue({
                     if (effects.ac)
                         ac += effects.ac;
                 }
-            if (toHit == 'crit')
-                defender.takeDamage(damage*2);
+            if (toHit == 'crit') {
+                defender.takeDamage(damage*2,'crit');
+                defender.currHitAddon = "Crit";
+            }
             else if (toHit >= ac)
                 defender.takeDamage(damage);
             else {
@@ -161,10 +129,29 @@ var app = new Vue({
         },
         castSpell: function(caster,target,givenSpell) {
             let spell = spells[givenSpell];
+            let flashInterval, count;
             console.log(spell,givenSpell)
             if (caster.mana > spell.cost && caster.isAlive && target.isAlive) {
+                if (flashInterval) {
+                    clearInterval(flashInterval);
+                    document.getElementsByClassName("mana-full")[0].style.backgroundColor = "#9c27b0";
+                }
                 spell.func(caster,target);
                 caster.mana -= spell.cost;
+            }
+            else {
+                count = 0;
+                if (flashInterval)
+                    clearInterval(flashInterval);
+                flashInterval = setInterval(()=>{
+                    if (count % 2 == 1)
+                        document.getElementsByClassName("mana-full")[0].style.backgroundColor = "#9c27b0";
+                    else 
+                        document.getElementsByClassName("mana-full")[0].style.backgroundColor = "#9c27b04f";
+                    count++;
+                    if (count == 10)
+                        clearInterval(flashInterval);
+                },250);
             }
         },
         playerTurn: function() {
@@ -338,7 +325,7 @@ var app = new Vue({
                     }
                 }
                 if (app.gameTick % app.recoveryInterval == 0) {
-                    if (!app.player.isAlive || document.getElementById('monsterSelector').value == 'Rest')
+                    if (!app.player.isAlive || app.currEnemy == 0)
                         if (app.player.hp < app.player.maxHP())
                             app.player.rest();
                     if (app.player.mana < app.player.maxMana())

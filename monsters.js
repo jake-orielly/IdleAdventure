@@ -4,16 +4,16 @@ var allMonsters = {
         return newMonster('boar',1,1,2.5,0,0,6,8,[]);
     },
     goblin: function() {
-        return newMonster('goblin',2,1,7,0,0,8,39,[{name:'copper_coin',amount:[3,9]}]);
+        return newMonster('goblin',2,1.5,7,0,0,8,39,[{name:'copper_coin',amount:[3,9]}]);
     },
     bandit: function() {
         return newMonster('bandit',3,5,9.5,0,0,10,65,[{name:'copper_coin',amount:[15,32]}]);
     },
     orc: function() {
-        return newMonster('orc',6,3,7,0,0,13,72,[{name:'copper_coin',amount:[16,28]}]);
+        return newMonster('orc',6,6,11,0,0,13,150,[{name:'copper_coin',amount:[45,68]}]);
     },
     drake: function() {
-        return newMonster('drake',7,9,12,0,0,16,600,[]);
+        return newMonster('drake',7,9,12,0,0,16,1200,[]);
     },
 }
 
@@ -48,7 +48,7 @@ function newCreature(name,str,agi,con,int,wis,ac) {
     }
     creature.mana = creature.maxMana();
 
-    creature.takeDamage = function(amount) {
+    creature.takeDamage = function(amount,addon) {
         // Catch overkill
         if (amount >= this.hp) {
             this.hp = 0;
@@ -64,7 +64,7 @@ function newCreature(name,str,agi,con,int,wis,ac) {
             this.hp -= amount;
         this.currHit = -1 * amount;
         if (app.currLocation == 'Dungeon')
-            app.$emit('damage',-1*amount,this.uid);
+            app.$emit('damage',-1*amount,this.uid,addon);
     }
     creature.heal = function(amount){
         creature.takeDamage(amount * -1);

@@ -1,11 +1,3 @@
-html, body {
-    margin: 0;
-    padding: 0;
-    font-size: 16px;
-    overflow:hidden;
-    user-select: none;
-}
-
 #app {
     width: 100%;
     height: 100%;
@@ -29,9 +21,9 @@ iframe {
     border: 0px;
 }
 
-.clickable {
-    cursor:pointer;
-    user-select: none;
+.owned-perks {
+    font-weight: bold;
+    text-decoration: underline;
 }
 
 /* Progress Bars */
@@ -62,46 +54,6 @@ iframe {
 
 .floating-num-end {
     transform: translate(1.5em, -1.5em);
-}
-
-.hidden {
-    opacity: 0;
-}
-
-.hp-full {
-    background-color: green;
-}
-
-.hp-empty {
-    background-color: red;
-}
-
-.hp-heal {
-    color: green;
-}
-
-.hp-damage {
-    color: red;
-}
-
-.xp-full {
-    background-color: lightseagreen;
-}
-
-.xp-empty {
-    background-color: lightgrey;
-}
-
-.mana-full {
-    background-color: #9c27b0;
-}
-
-.mana-color {
-    color: #9c27b0;
-}
-
-.mana-empty {
-    background-color: #9c27b04f;
 }
 
 .enemy-list {

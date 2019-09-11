@@ -1,9 +1,3 @@
-body {
-    padding: 0;
-    margin: 0;
-    overflow: hidden;
-}
-
 td {
     position: relative;
     padding: 0;
@@ -15,7 +9,7 @@ img, .highlight {
     top: 0;
 }
 
-td, img, .highlight {
+#board td, img, .highlight {
     width: 4em;
     height: 4em;
 }
@@ -66,42 +60,6 @@ td, img, .highlight {
     height: 0;
 }
 
-.hp-full {
-    background-color: green;
-}
-
-.hp-empty {
-    background-color: red;
-}
-
-.hp-heal {
-    color: green;
-}
-
-.hp-damage {
-    color: red;
-}
-
-.xp-full {
-    background-color: lightseagreen;
-}
-
-.xp-empty {
-    background-color: lightgrey;
-}
-
-.mana-full {
-    background-color: #9c27b0;
-}
-
-.mana-color {
-    color: #9c27b0;
-}
-
-.mana-empty {
-    background-color: #9c27b04f;
-}
-
 /* Inventory */
 #player-inventory-table td {
     width: auto;
@@ -131,10 +89,6 @@ td, img, .highlight {
     color: red;
 }
 
-.hidden {
-    opacity: 0;
-}
-
 .rot90 {
     transform: rotate(90deg);
 }
@@ -149,6 +103,10 @@ td, img, .highlight {
 
 .flip {
     transform: scaleX(-1);
+}
+
+.frozen {
+    filter: sepia(90%) hue-rotate(190deg) saturate(600%);
 }
 
 #new-monster-alert {

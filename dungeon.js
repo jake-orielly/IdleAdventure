@@ -58,6 +58,8 @@ function renderTile(x,y,addon,highlightColor) {
         addonClass = addon.class;
     tileHtml += getTile(x,y);
     if (addon) {
+        if (addon.entity && addon.entity.isStunned)
+            addonClass += ' frozen';
         tileHtml += '<img class="' + addonClass + '" src="' + addon.img + '">';
         if (addon.entity && addon.entity.name != 'player') {
             width = addon.entity.hp/addon.entity.maxHP()*100;
@@ -109,6 +111,7 @@ function enemyTurn() {
         renderTile(i.x,i.y);
     if (!currEnemies.length) {
         playerSteps = 2;
+        document.getElementById("player-steps").innerHTML = playerSteps;
         playerTurn = true;
         return;
     }
@@ -122,6 +125,7 @@ function enemyTurn() {
     function enemyMove() {
         if (currEnemyIndex == currEnemies.length) {
             playerSteps = 2;
+            document.getElementById("player-steps").innerHTML = playerSteps;
             playerTurn = true;
             return;
         }
@@ -132,6 +136,19 @@ function enemyTurn() {
     }
 
     function enemyStep() {
+        if (currEnemy.entity.isStunned) {
+            if (currEnemy.entity.isStunned == 0 || currEnemy.entity.isStunned == 1) {
+                if (currEnemy.entity.isStunned == 1)
+                    currEnemy.entity.isStunned = 0;
+                renderTile(currEnemy.x,currEnemy.y,currEnemy);
+            }
+            else {
+                currEnemy.entity.isStunned--;
+                currEnemyIndex++;
+                setTimeout(()=>{enemyMove();},150);
+                return;
+            }
+        }
         if (currStep == path.length) {
             if (currStep < currEnemy.entity.movement) {
                 app.attack(currEnemy.entity,playerToken.entity);
@@ -301,11 +318,10 @@ function pathFind(start,end) {
     let result = [];
     let minVal = 10000;
     
-    // todo if wall (dungeon1Map[y][x] == 0), then valGrid[i][j] = -1
     for (let i = yVisMod; i < yVisMod + cols; i++) {
         valGrid[i] = {};
         for (let j = xVisMod; j < xVisMod + rows; j++) {
-            if (dungeon1Map[i][j] == 0)
+            if (dungeon1Map[i][j] != 1)
                 valGrid[i][j] = -1;
             else 
                 valGrid[i][j] = 10000;
@@ -399,9 +415,11 @@ function chooseAction(action) {
     }
 }
 
-function floatingNumberTrigger(damage,uid){
+function floatingNumberTrigger(damage,uid,addon){
     let target;
     let numX, numY;
+    if (addon)
+        damage = prettyPrint(addon) + ' ' + damage;
     if (uid == playerToken.entity.uid)
         target = playerToken;
     else
@@ -443,6 +461,7 @@ function takeAction(y,x) {
         document.getElementById('xp-inner').style.height = app.player.xp/app.xpToLevel[app.player.level+1]*100 + '%';
         highlights = {};
         renderFloorTiles();
+        renderScenery();
         renderTile(playerToken.x,playerToken.y,playerToken);
         renderEnemies();
         enemyTurn();
@@ -465,6 +484,7 @@ function startDungeon(){
     playerActions.push('attack');
     for (let i of app.player.spells)
         playerActions.push(i);
+    console.log(playerActions)
     for (let i of playerActions)
         buttons += '<button class="action-button" onclick="chooseAction(\'' + i + '\')">' + prettyPrint(i) + '</button>'
     document.getElementById('player-action-container').innerHTML = buttons;
@@ -505,8 +525,8 @@ function startDungeon(){
     app.$on('invChange', function() {
         renderInventory();
     });
-    app.$on('damage', function(damage,uid) {
-        floatingNumberTrigger(damage,uid);
+    app.$on('damage', function(damage,uid,addon) {
+        floatingNumberTrigger(damage,uid,addon);
     });
     app.$on('startDungeon', function() {
         startDungeon();
@@ -519,4 +539,5 @@ function startDungeon(){
         },12000)
     })
 }
+
 startDungeon();

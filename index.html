@@ -1,11 +1,13 @@
 <html>
     <head>
+        <link rel="stylesheet" href="shared.css">
         <link rel="stylesheet" href="app.css">
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
         <script src="utilityFunctions.js"></script>
         <script src="items.js"></script>
         <script src="monsters.js"></script>
         <script src="spells.js"></script>
+        <script src="perkList.js"></script>
         <script src="milestonesList.js"></script>
         <script src="shop.vue"></script>
     </head>
@@ -31,11 +33,7 @@
                                     {{prettyPrint(player.hp) + " / " + player.maxHP()}}
                                     <div class="floating-num" 
                                     :class="[ player.currHit != undefined ? 'floating-num-end' : 'hidden', player.currHit < 0 ? 'hp-damage' : 'hp-heal']">
-                                        {{prettyPrint(player.currHit)}}
-                                    </div>
-                                    <div class="floating-num" 
-                                    :class="[ player.currHitAddon != undefined ? 'floating-num-end' : 'hidden']">
-                                        {{player.currHitAddon}}
+                                        {{player.currHitAddon}} {{prettyPrint(player.currHit)}}
                                     </div>
                                 </div>
                             </div>
@@ -70,11 +68,7 @@
                                     {{currEnemy.hp + " / " + currEnemy.maxHP()}}
                                     <div class="floating-num" 
                                     :class="[ currEnemy.currHit != undefined ? 'floating-num-end' : 'hidden', currEnemy.currHit < 0 ? 'hp-damage' : 'hp-heal']">
-                                        {{prettyPrint(currEnemy.currHit)}}
-                                    </div>
-                                    <div class="floating-num" 
-                                    :class="[ currEnemy.currHitAddon != undefined ? 'floating-num-end' : 'hidden']">
-                                        {{currEnemy.currHitAddon}}
+                                        {{currEnemy.currHitAddon}} {{prettyPrint(currEnemy.currHit)}} 
                                     </div>
                                 </div>
                                 <div v-if="currEnemy.isStunned && currEnemy.isAlive">
@@ -126,8 +120,17 @@
                                 <span style='font-weight: bold'>{{perk.perks[perk.level].name}}</span>
                                 {{': ' + perk.perks[perk.level].text + ' - ' + perk.perks[perk.level].cost + (perk.perks[perk.level].cost > 1 ? ' points' : ' point')}}</li>
                         </ul>
+                        <button @click="newLife" style="margin-top: 1em">Reincarnate</button>
+                        <div v-if="perkList.filter(perk => perk.level > 0).length">
+                            <hr>
+                            <p class="owned-perks">Owned Perks</p>
+                            <ul>
+                                <li v-for="perk in perkList.filter(perk => perk.level > 0)">
+                                    <span style='font-weight: bold'>{{perk.perks[perk.level-1].name}}</span>
+                                    {{': ' + perk.perks[perk.level-1].text}}</li>
+                            </ul>
+                        </div>
                     </div>
-                    <button @click="newLife" style="margin-top: 1em">Reincarnate</button>
                 </div>
             </div>
             <div v-if="currLocation == 'Shop'">

@@ -9,10 +9,10 @@ var items = {
         }}
     },
     copper_dagger: function() {
-        return weapon('copper_dagger','s',1,2,15)
+        return weapon('copper_dagger','s',1,3,15)
     },
     copper_sword: function() {
-        return weapon('copper_sword','s',2,4,55)
+        return weapon('copper_sword','s',2,5,55)
     },
     copper_axe: function() {
         return weapon('copper_axe','s',3,2,65)
@@ -21,16 +21,16 @@ var items = {
         return weapon('copper_mace','s',4,0,70)
     },
     iron_dagger: function() {
-        return weapon('iron_dagger','s',2,5,165)
+        return weapon('iron_dagger','s',2,6,165)
     },
     iron_sword: function() {
-        return weapon('iron_sword','s',4,8,240)
+        return weapon('iron_sword','s',4,9,240)
     },
     iron_axe: function() {
-        return weapon('iron_axe','s',6,4,270)
+        return weapon('iron_axe','s',6,5,270)
     },
     iron_mace: function() {
-        return weapon('iron_mace','s',8,2,290)
+        return weapon('iron_mace','s',9,2,290)
     },
     copper_breastplate: function() {
         return armor('copper_breastplate','s',75,'chest',4);

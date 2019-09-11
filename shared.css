@@ -1,0 +1,53 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    overflow:hidden;
+    user-select: none;
+}
+
+.clickable {
+    cursor:pointer;
+    user-select: none;
+}
+
+.hidden {
+    opacity: 0;
+}
+
+/* Progress Bar Colors */
+.hp-full {
+    background-color: green;
+}
+
+.hp-empty {
+    background-color: red;
+}
+
+.hp-heal {
+    color: green;
+}
+
+.hp-damage {
+    color: red;
+}
+
+.xp-full {
+    background-color: lightseagreen;
+}
+
+.xp-empty {
+    background-color: lightgrey;
+}
+
+.mana-full {
+    background-color: #9c27b0;
+}
+
+.mana-color {
+    color: #9c27b0;
+}
+
+.mana-empty {
+    background-color: #9c27b04f;
+}
