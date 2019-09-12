@@ -3,7 +3,7 @@ var app = new Vue({
     data: {
         monsters:[],
         locations:['Wilderness'],
-        currLocation: 'Wilderness',
+        currLocation: 'Dungeon',
         statInfo: {
             'str':'Strength: determines how hard you hit enemies.',
             'agi':'Agility: determines how often you hit, and how often you get hit.',
@@ -26,7 +26,7 @@ var app = new Vue({
         // Perk trackers
         afterlifePoints: 0,
         startingPoints: 0,
-        startingInventory: {},
+        startingInventory: {'bread':1,'copper_coin':10},
         startingStr: 2,
         startingCon: 5,
         startingAc: 12,
@@ -74,14 +74,18 @@ var app = new Vue({
             }
             player.rest = function() {
                 let amount = this.con/15;
-                player.takeDamage(-1 * amount);
+                player.takeDamage(-1 * amount,'rest');
             }
             player.manaRegen = function() {
                 let amount = this.wis/75;
-                if (this.mana + amount > this.maxMana())
+                if (this.mana + amount > this.maxMana()) {
                     this.mana = this.maxMana();
-                else
+                    this.manaRegenAmount = undefined;
+                }
+                else {
                     this.mana += amount;
+                    this.manaRegenAmount = prettyPrint(1000 / (app.gameTickInterval * app.recoveryInterval) * amount) + '/s';
+                }
             }
             player.equip = function(item) {
                 if (this.equipment[item.slot])

@@ -62,7 +62,13 @@ function newCreature(name,str,agi,con,int,wis,ac) {
         }
         else
             this.hp -= amount;
-        this.currHit = -1 * amount;
+        if (addon == 'rest')
+            if (this.hp == this.maxHP())
+                this.currHit = undefined;
+            else
+                this.currHit = prettyPrint(1000 / (app.gameTickInterval * app.recoveryInterval) * amount * -1) + '/s';
+        else
+            this.currHit = -1 * amount;
         if (app.currLocation == 'Dungeon')
             app.$emit('damage',-1*amount,this.uid,addon);
     }

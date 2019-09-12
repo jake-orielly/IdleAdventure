@@ -195,13 +195,26 @@ function renderInventory() {
     let inventory = '';
     let row;
     for (let i in app.player.inventory) {
-        row = '<tr>';
-        row += '<td>' + prettyPrint(i) + '</td>';
-        row += '<td>' + app.player.inventory[i] + '</td>';
-        row += '</tr>';
-        inventory += row;
+        if (app.player.inventory[i] > 0) {
+            row = '<tr>';
+            row += '<td>' + prettyPrint(i) + '</td>';
+            row += '<td>' + app.player.inventory[i] + '</td>';
+            if(app.items[i]().useName)
+                row += `<td><span class="inventory-item-use clickable" id="${i}-use">
+                    ${prettyPrint(app.items[i]().useName)}
+                </span></td>`
+            row += '</tr>';
+            inventory += row;
+        }
     }
     document.getElementById('player-inventory-table').innerHTML = inventory;
+    for (let i in app.player.inventory)
+        if (document.getElementById(i + '-use'))
+            document.getElementById(i + '-use').onclick = function() {
+                app.items[i]().use(app.player);
+                updateHP();
+                renderInventory();
+            };
 }
 
 function onBoard(x,y) {
@@ -432,7 +445,9 @@ function floatingNumberTrigger(damage,uid,addon){
     if ($('#floating-num-' + numX + '-' + numY).hasClass('floating-num-end'))
         $('#floating-num-' + numX + '-' + numY).removeClass('floating-num-end');
     $('#floating-num-' + numX + '-' + numY).addClass('floating-num-end');
-    if (damage != 'Miss')
+    if (damage > 0)
+        $('#floating-num-' + numX + '-' + numY).addClass('hp-heal');
+    else if (damage != 'Miss')
         $('#floating-num-' + numX + '-' + numY).addClass('hp-color');
     hideFloating[numX+'-'+numY] = setTimeout(()=> {
         $('#floating-num-' + numX + '-' + numY).removeClass('floating-num-end');

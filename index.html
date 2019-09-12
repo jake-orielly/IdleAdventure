@@ -43,6 +43,10 @@
                                 </div>
                                 <div class="progress-bar-text">
                                     {{prettyPrint(player.mana) + "/" + player.maxMana()}}
+                                    <div class="floating-num" 
+                                    :class="[ player.manaRegen != undefined ? 'floating-num-mana' : 'hidden', 'mana-color']">
+                                        {{player.manaRegenAmount}}
+                                    </div>
                                 </div>
                             </div>
                             <div class="progress-bar xp-empty">

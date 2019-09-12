@@ -9,7 +9,7 @@ img, .highlight {
     top: 0;
 }
 
-#board td, img, .highlight {
+#board td, #floating-num-table td, img, .highlight {
     width: 4em;
     height: 4em;
 }

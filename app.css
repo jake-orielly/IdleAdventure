@@ -96,6 +96,9 @@ iframe {
     margin: 0em 0.5em;
 }
 
+.floating-num-mana {
+    transform: translate(3em, -.75em);
+}
 /* Shop UI */
 .buy-button {
     text-decoration: underline;
