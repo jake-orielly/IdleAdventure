@@ -89,6 +89,10 @@ img, .highlight {
     color: red;
 }
 
+.miss-color {
+    color: white;
+}
+
 .rot90 {
     transform: rotate(90deg);
 }

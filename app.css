@@ -26,6 +26,10 @@ iframe {
     text-decoration: underline;
 }
 
+.floating-num .miss-color {
+    color: black;
+}
+
 /* Progress Bars */
 .progress-bar {
     height: 1.5em;
@@ -92,6 +96,10 @@ iframe {
 }
 
 /* Spells */
+.spell-btn-div {
+    margin-top: 1em;
+}
+
 .spell-btn {
     margin: 0em 0.5em;
 }

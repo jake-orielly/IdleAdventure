@@ -26,10 +26,10 @@ let hideFloating = {};
 
 let scenery = [
     {x:7,y:49,img:chestImage, inventory:
-        {copper_coin:[35,50]}
+        [{name:'copper_coin',amount:[35,50]},{name:'iron_sword',amount:1}]
     },
     {x:36,y:17,img:chestImage, inventory:
-        {iron_sword:1}
+        [{name:'bloodthirsty_longsword',amount:1}]
     },
     {x:24,y:49,img:altarImage},
     {x:25,y:49,img:columnImage},
@@ -214,6 +214,9 @@ function renderInventory() {
                 app.items[i]().use(app.player);
                 updateHP();
                 renderInventory();
+                document.getElementById("player-steps").innerHTML = 0;
+                playerTurn = false;
+                enemyTurn();
             };
 }
 
@@ -263,8 +266,8 @@ function keyPress() {
         for (let i of scenery)
             if (i.img == chestImage && inRange(playerToken,i,1))
                 for (let j in i.inventory) {
-                    addItem(app.player.inventory,app.items[j](),i.inventory[j]);
-                    removeItem(i.inventory,app.items[j](),'all');
+                    addItem(app.player.inventory,app.items[i.inventory[j].name](),i.inventory[j].amount);
+                    removeItem(i.inventory,app.items[i.inventory[j].name](),'all');
                     i.img = chestOpenImage;
                     renderTile(i.x,i.y,i);
                 }
@@ -449,10 +452,14 @@ function floatingNumberTrigger(damage,uid,addon){
         $('#floating-num-' + numX + '-' + numY).addClass('hp-heal');
     else if (damage != 'Miss')
         $('#floating-num-' + numX + '-' + numY).addClass('hp-color');
+    else
+        $('#floating-num-' + numX + '-' + numY).addClass('miss-color');
     hideFloating[numX+'-'+numY] = setTimeout(()=> {
         $('#floating-num-' + numX + '-' + numY).removeClass('floating-num-end');
         $('#floating-num-' + numX + '-' + numY).addClass('hidden');
         $('#floating-num-' + numX + '-' + numY).removeClass('hp-color');
+        $('#floating-num-' + numX + '-' + numY).removeClass('hp-heal');
+        $('#floating-num-' + numX + '-' + numY).removeClass('miss-color');
     },750);
 }
 
@@ -472,6 +479,7 @@ function takeAction(y,x) {
             app.castSpell(playerToken.entity,target,selectedAction)
             document.getElementById('mana-inner').style.height = app.player.mana/app.player.maxMana()*100 + "%";
         }
+        document.getElementById("player-steps").innerHTML = 0;
         playerTurn = false;
         document.getElementById('xp-inner').style.height = app.player.xp/app.xpToLevel[app.player.level+1]*100 + '%';
         highlights = {};
@@ -499,7 +507,6 @@ function startDungeon(){
     playerActions.push('attack');
     for (let i of app.player.spells)
         playerActions.push(i);
-    console.log(playerActions)
     for (let i of playerActions)
         buttons += '<button class="action-button" onclick="chooseAction(\'' + i + '\')">' + prettyPrint(i) + '</button>'
     document.getElementById('player-action-container').innerHTML = buttons;
@@ -515,11 +522,11 @@ function startDungeon(){
 
         // Altar Room
         {x:24,y:48,img:'images/orc.png',entity:app.allMonsters['orc']()},
-        {x:39,y:36,img:'images/goblin.png',entity:app.allMonsters['goblin']()},
 
         //Statue Room
-        {x:39,y:37,img:'images/orc.png',entity:app.allMonsters['orc']()},
-        {x:39,y:38,img:'images/goblin.png',entity:app.allMonsters['goblin']()},
+        {x:39,y:36,img:'images/orc.png',entity:app.allMonsters['goblin']()},
+        {x:39,y:37,img:'images/goblin.png',entity:app.allMonsters['orc']()},
+        {x:39,y:38,img:'images/orc.png',entity:app.allMonsters['goblin']()},
 
         //Boss
         {x:36,y:18,img:'images/drake.png', entity:app.allMonsters['drake']()}

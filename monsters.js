@@ -10,10 +10,10 @@ var allMonsters = {
         return newMonster('bandit',3,5,9.5,0,0,10,65,[{name:'copper_coin',amount:[15,32]}]);
     },
     orc: function() {
-        return newMonster('orc',6,6,11,0,0,13,150,[{name:'copper_coin',amount:[45,68]}]);
+        return newMonster('orc',6,7.5,11,0,0,13,150,[{name:'copper_coin',amount:[45,68]}]);
     },
     drake: function() {
-        return newMonster('drake',7,9,12,0,0,16,1200,[]);
+        return newMonster('drake',7,8.5,11,0,0,16,1200,[]);
     },
 }
 
@@ -57,8 +57,11 @@ function newCreature(name,str,agi,con,int,wis,ac) {
         }
         // Catch overheal
         else if (amount < 0 && this.hp - amount >= creature.maxHP()) {
-            this.hp = this.maxHP();
-            this.isAlive = true;
+            if (this.hp != this.maxHP()) {
+                this.currHit = -1 * amount;
+                this.hp = this.maxHP();
+                this.isAlive = true;
+            }
         }
         else
             this.hp -= amount;
@@ -76,7 +79,7 @@ function newCreature(name,str,agi,con,int,wis,ac) {
         creature.takeDamage(amount * -1);
     }
     creature.dmgRoll = function() {
-        return parseInt(Math.random() * Math.pow(this.str/1.5,1.8) + Math.min(this.str/3,1)) + 1;
+        return parseInt(Math.random() * Math.pow(this.str/1.5,1.7) + Math.min(this.str/3,1)) + 1;
     }
     creature.toHit = function() {
         let roll = app.d20();

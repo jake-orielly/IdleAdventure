@@ -26,7 +26,7 @@ Vue.component('shop', {
             this.flashInterval = setInterval(()=>{
                 if (!document.getElementById(items[item]().name + '-price'))
                   clearInterval(this.flashInterval);
-                eles if (this.count % 2 == 1)
+                else if (this.count % 2 == 1)
                     document.getElementById(items[item]().name + '-price').style.color = 'black';
                 else 
                     document.getElementById(items[item]().name + '-price').style.color = 'red';
@@ -42,6 +42,7 @@ Vue.component('shop', {
         prettyPrint: prettyPrint,
   },
   mounted: function() {
+    this.app.newItemsInShop = false;
     app.$on('invChange', function() {
       // AKA only update the shop if it's open
       if (this.$children[0])

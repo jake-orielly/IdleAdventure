@@ -1,6 +1,5 @@
 // Inventory Functions
 function addItem(inventory,item,amount) {
-    console.log(inventory)
     if (amount instanceof Array)
         amount = parseInt(Math.random()*(amount[1] - amount[0])) + amount[0];
     if (!inventory[item.name])

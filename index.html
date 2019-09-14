@@ -14,9 +14,9 @@
     <body>
         <div id="app">
             <div v-if="currLocation != 'Dungeon' && !player.inAfterlife" id="locations-container">
-                <ul id="locations-menu">
+                <ul id="locations-menu" v-if="locations.length > 1">
                     <li v-for="loc in locations" @click="changeLocation(loc)" class="locations-menu-item clickable">
-                        {{loc}}
+                        {{loc}} <span v-if="loc == 'Shop' && newItemsInShop">*New Items*</span>
                     </li>
                 </ul>
             </div>
@@ -32,8 +32,8 @@
                                 <div class="progress-bar-text">
                                     {{prettyPrint(player.hp) + " / " + player.maxHP()}}
                                     <div class="floating-num" 
-                                    :class="[ player.currHit != undefined ? 'floating-num-end' : 'hidden', player.currHit < 0 ? 'hp-damage' : 'hp-heal']">
-                                        {{player.currHitAddon}} {{prettyPrint(player.currHit)}}
+                                    :class="[ (player.currHit != undefined || player.currHitAddon != undefined) ? 'floating-num-end' : 'hidden', player.currHit < 0 ? 'hp-damage' : 'hp-heal']">
+                                        <span :class="{'miss-color' : player.currHitAddon == 'Miss'}">{{player.currHitAddon}}</span> <span v-if="player.currHit > 0">+</span>{{prettyPrint(player.currHit)}}
                                     </div>
                                 </div>
                             </div>
@@ -60,7 +60,7 @@
                         </div>
                         <div v-if="player.isAlive">
                             <span>Next:</span> 
-                            <select id="monsterSelector" @change="enemySelect">
+                            <select id="monsterSelector">
                                 <option value="Rest">Rest</option>
                                 <option v-for="monster in monsters" :value="monster">{{prettyPrint(monster)}}</option>
                             </select>
@@ -71,8 +71,8 @@
                                 <div class="progress-bar-text">
                                     {{currEnemy.hp + " / " + currEnemy.maxHP()}}
                                     <div class="floating-num" 
-                                    :class="[ currEnemy.currHit != undefined ? 'floating-num-end' : 'hidden', currEnemy.currHit < 0 ? 'hp-damage' : 'hp-heal']">
-                                        {{currEnemy.currHitAddon}} {{prettyPrint(currEnemy.currHit)}} 
+                                    :class="[ (currEnemy.currHit != undefined || currEnemy.currHitAddon != undefined) ? 'floating-num-end' : 'hidden', currEnemy.currHit < 0 ? 'hp-damage' : 'hp-heal']">
+                                        <span :class="{'miss-color' : currEnemy.currHitAddon == 'Miss'}">{{currEnemy.currHitAddon}}</span> {{prettyPrint(currEnemy.currHit)}} 
                                     </div>
                                 </div>
                                 <div v-if="currEnemy.isStunned && currEnemy.isAlive">
@@ -80,7 +80,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div>
+                        <div class='spell-btn-div'>
                             <button v-for="spell in player.spells" class="spell-btn" @click="castSpell(player,currEnemy,spell)">{{prettyPrint(spell)}}</button>
                         </div>
                         <div >

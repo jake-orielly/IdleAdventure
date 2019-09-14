@@ -3,7 +3,7 @@ var app = new Vue({
     data: {
         monsters:[],
         locations:['Wilderness'],
-        currLocation: 'Dungeon',
+        currLocation: 'Wilderness',
         statInfo: {
             'str':'Strength: determines how hard you hit enemies.',
             'agi':'Agility: determines how often you hit, and how often you get hit.',
@@ -16,7 +16,7 @@ var app = new Vue({
         spells: spells,
         milestonesList: milestonesList,
         gameTick: 1,
-        gameTickInterval: 10,
+        gameTickInterval: 20,
         //gameTickInterval: 20,
         turnInterval: 75,
         recoveryInterval: 20,
@@ -26,7 +26,7 @@ var app = new Vue({
         // Perk trackers
         afterlifePoints: 0,
         startingPoints: 0,
-        startingInventory: {'bread':1,'copper_coin':10},
+        startingInventory: {},
         startingStr: 2,
         startingCon: 5,
         startingAc: 12,
@@ -35,7 +35,9 @@ var app = new Vue({
         startingStats: [],
         startingSpells: [],
         xpToLevel: [0,0],
-        perkList: perkList
+        perkList: perkList,
+        monsterVal: undefined,
+        newItemsInShop: false,
     },
     methods: {
         buyPerk: function(perk) {
@@ -48,8 +50,6 @@ var app = new Vue({
         },
         playerInit: function() {
             let player = this.newCreature("player",this.startingStr,2,this.startingCon,4,5,this.startingAc);
-            player.str = 2;
-            player.agi = 2;
             player.xp = 0;
             player.level = 1;
             player.stats = [];
@@ -61,6 +61,8 @@ var app = new Vue({
             player.equipment = {};
             player.uid = 0;
             player.die = function() {
+                console.log("player died")
+                app.player.currHitAddon = undefined;
                 app.currEnemy = 0;
                 if (app.currLocation == 'Wilderness' && !app.player.inAfterlife &&  document.getElementById('monsterSelector'))
                     document.getElementById('monsterSelector').value = "Rest";
@@ -73,7 +75,7 @@ var app = new Vue({
                 }
             }
             player.rest = function() {
-                let amount = this.con/15;
+                let amount = this.con/25;
                 player.takeDamage(-1 * amount,'rest');
             }
             player.manaRegen = function() {
@@ -122,9 +124,15 @@ var app = new Vue({
             if (toHit == 'crit') {
                 defender.takeDamage(damage*2,'crit');
                 defender.currHitAddon = "Crit";
+                if (attacker.equipment && attacker.equipment.weapon && attacker.equipment.weapon.func && attacker.equipment.weapon.func.onHit)
+                    attacker.equipment.weapon.func.onHit(attacker,damage);
             }
-            else if (toHit >= ac)
+            else if (toHit >= ac) {
+                defender.currHitAddon = undefined;
                 defender.takeDamage(damage);
+                if (attacker.equipment && attacker.equipment.weapon && attacker.equipment.weapon.func && attacker.equipment.weapon.func.onHit)
+                    attacker.equipment.weapon.func.onHit(attacker,damage);
+            }
             else {
                 defender.currHitAddon = "Miss";
                 if (app.currLocation == 'Dungeon')
@@ -159,14 +167,14 @@ var app = new Vue({
             }
         },
         playerTurn: function() {
-            this.attack(this.player, this.currEnemy);
             this.player.currHit = undefined;
             this.player.currHitAddon = undefined;
+            this.attack(this.player, this.currEnemy);
         },
         enemyTurn: function() {
-            this.attack(this.currEnemy, this.player);
             this.currEnemy.currHit = undefined;
             this.currEnemy.currHitAddon = undefined;
+            this.attack(this.currEnemy, this.player);
         },
         giveXP(amount) {
             this.player.xp += amount * this.xpMultiplier;
@@ -194,8 +202,10 @@ var app = new Vue({
                 this.locations.push(currMilestone['location']);
             // Item Milestones
             if (currMilestone['items'])
-                for (let i of currMilestone['items'])
+                for (let i of currMilestone['items']) {
                     this.newItems.push(i);
+                    this.newItemsInShop = true;
+                }
 
         },
         d20: function() {
@@ -204,10 +214,6 @@ var app = new Vue({
         xpFunc: function(level) {
             let neededXP = this.xpToLevel[level-1] + Math.floor(level + 100 * Math.pow(2, level / 7))/4;
             return parseInt(neededXP);
-        },
-        enemySelect() {
-            if (document.getElementById('monsterSelector').value != 'Rest')
-                app.currEnemy = app.allMonsters[document.getElementById('monsterSelector').value]();
         },
         simulateAttack: function(monster,trials) {
             let average = 0;
@@ -274,12 +280,17 @@ var app = new Vue({
             this.$forceUpdate();
         },
         changeLocation: function(loc) {
+            let temp = this.currLocation;
             this.currLocation = loc;
             if (loc == 'Dungeon') {
                 app.$emit('startDungeon');
                 document.getElementById("dungeonIframe").focus();
             }
-
+            else if (loc == 'Shop')
+                this.monsterVal = document.getElementById('monsterSelector').value;
+            else if (temp == 'Shop' && loc == 'Wilderness' && this.monsterVal)
+                setTimeout(()=>{
+                    document.getElementById('monsterSelector').value = this.monsterVal;},1);
         },
         prettyPrint: prettyPrint,
         ping: function(string="hello") {
@@ -316,11 +327,11 @@ var app = new Vue({
                             app.currEnemy.isStunned--;
                     }
                 }
-                else if (app.currEnemy && !app.currEnemy.isAlive) {
+                else if (!app.currEnemy || !app.currEnemy.isAlive) {
                     if (!app.monsterDeathTick)
                         app.monsterDeathTick = app.gameTick;
                     else if (app.gameTick == app.monsterDeathTick + app.monsterSpawnTime) {
-                        if (document.getElementById('monsterSelector').value == 'Rest')
+                        if (!document.getElementById('monsterSelector') || document.getElementById('monsterSelector').value == 'Rest')
                             app.currEnemy = 0;
                         else
                             app.currEnemy = app.allMonsters[document.getElementById('monsterSelector').value]();
